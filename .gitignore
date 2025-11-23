@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+
+# TypeScript build output
+dist/
+
+# Prisma generated files
+/generated/prisma/
+.prisma/
+
+# Next.js build output
+.next/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS files
+.DS_Store
+
+# Optional: Editor files
+.vscode/
+.idea/
