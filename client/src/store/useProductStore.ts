@@ -27,12 +27,12 @@ type CreateProductInput = {
     brand: string;
     description: string;
     category: string;
-    gender: "male" | "female" | "unisex";
+    gender: string;
     sizes: string[];
     colors: string[];
     price: number;
     stock: number;
-    images: string[];
+    files: File[];
     isFeatured: boolean;
 }
 
@@ -41,12 +41,12 @@ type UpdateProductInput = {
     brand: string;
     description: string;
     category: string;
-    gender: "male" | "female" | "unisex";
+    gender: string;
     sizes: string[];
     colors: string[];
     price: number;
     stock: number;
-    images: string[];
+    files: string[];
     isFeatured: boolean;
 }
 
@@ -63,8 +63,11 @@ interface CreateProductResponse {
 type ProductStore = {
     products: Product[] | null;
     isLoading: boolean,
-    error: string | null,
-    addProduct: (product: CreateProductInput) => Promise<string | null>;
+    error: {
+        message: string,
+        details?: string[]
+    } | null,
+    addProduct: (product: FormData) => Promise<string | null>;
     getAllProductAdmin: () => Promise<void>;
     updateProduct: (id: string, product: UpdateProductInput) => Promise<string | null>;
     removeProduct: (id: string) => Promise<string | null>;
@@ -74,28 +77,29 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     products: [],
     isLoading: false,
     error: null,
-    addProduct: async (product: CreateProductInput) => {
+    addProduct: async (product: FormData) => {
         try {
             set({ isLoading: true, error: null });
-            const response = await axiosClient.post('/product', {
-                ...product,
-            }, {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            })
+            const response = await axiosClient.post('/product',
+                product
+                , {
+                    headers: {
+                        "Content-Type": "multipart/form-data"
+                    }
+                })
             set({
                 isLoading: false,
             })
             console.log(response, 'CreateProductInput response');
             return response.data.data.id ?? null;
         } catch (e) {
-            const axiosError = e as AxiosError<{ message?: string }>;
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
             set({
                 isLoading: false,
-                error: axiosError.response?.data?.message ||
-                    axiosError.message ||
-                    "Failed to create product",
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to create the product",
+                    details: axiosError.response?.data?.details
+                }
             })
             return null;
         }

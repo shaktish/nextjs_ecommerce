@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 
 export const parseFormData = (arrayFields: string[] = []) => (req: Request, res: Response, next: NextFunction) => {
     const body = req.body;
-
     Object.keys(body).forEach(key => {
         let value = body[key];
 
@@ -24,7 +23,5 @@ export const parseFormData = (arrayFields: string[] = []) => (req: Request, res:
             return;
         }
     });
-
-    console.log(req.body)
     next();
 };

@@ -13,6 +13,7 @@ export const uploadImages = async (files: Express.Multer.File[]) => {
         })
 
         try {
+            console.log("File deleted:", file.path);
             await fs.unlink(file.path);
         } catch (err) {
             console.warn("File already deleted or missing:", file.path);

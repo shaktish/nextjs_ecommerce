@@ -8,6 +8,7 @@ import { uploadImages } from "../utils/uploadImages.ts";
 
 // create a product
 const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    console.log(req.body, 'body create porduct')
     const { error, value } = createProductSchema.validate(req.body, { abortEarly: false });
 
     // validate request body
@@ -36,8 +37,8 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
     }
     // upload product images if available 
     const files = (req.files as Express.Multer.File[]) || [];
-    const imageUrls = await uploadImages(files);
 
+    const imageUrls = await uploadImages(files);
     // create the product in db 
     const product = await prisma.product.create({
         data: {

@@ -7,7 +7,7 @@ import { parseFormData } from '../middleware/parseData.ts';
 
 const router = express.Router();
 router.get('/getAllProductsAdmin', AuthenticateJWT, isAdmin, getAllProductsAdmin);
-router.post('/', upload.array("images", 10), parseFormData(["sizes", "colors"]), AuthenticateJWT, isAdmin, createProduct);
+router.post('/', AuthenticateJWT, isAdmin, upload.array("images", 10), parseFormData(["sizes", "colors"]), createProduct);
 router.get('/:id', AuthenticateJWT, getProduct);
 router.patch('/:id', upload.array("images", 10), parseFormData(["sizes", "colors"]), AuthenticateJWT, updateProduct);
 router.delete('/:id', AuthenticateJWT, isAdmin, deleteProduct);
