@@ -1,5 +1,8 @@
-import express, { Express } from 'express';
+import { registerProcessHandlers } from './utils/processHandlers.ts';
 import config from './config/envConfig.ts';
+registerProcessHandlers();
+import express, { Express } from 'express';
+
 import winstonLogger from './utils/winstonLogger.ts';
 import { healthChecker } from './controller/health.ts';
 import globalErrorHandler from './middleware/globalErrorHandler.ts';
@@ -10,8 +13,7 @@ import { PrismaClient } from '../generated/prisma/index.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import corsOptions from './config/cors.ts';
-import { setupGracefulShutdown } from './utils/gracefulShutdown.ts';
-import { AuthenticateJWT, isAdmin } from './middleware/authMiddleware.ts';
+import { rateLimiter } from './config/rateLimiter.ts';
 
 export const prisma = new PrismaClient();
 const app: Express = express();
@@ -19,6 +21,7 @@ const app: Express = express();
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
+app.use(rateLimiter({ limit: 100, window: 60 }));
 app.use(loggerHandler);
 app.get("/health", healthChecker)
 app.use("/api/auth", AuthRoutes)
@@ -28,4 +31,3 @@ app.use(globalErrorHandler);
 app.listen(config.port, () => {
     winstonLogger.info(`App started at http://localhost:${config.port}`)
 });
-setupGracefulShutdown(prisma);
