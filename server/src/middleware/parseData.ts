@@ -23,5 +23,6 @@ export const parseFormData = (arrayFields: string[] = []) => (req: Request, res:
             return;
         }
     });
+    console.log(body, 'body parseFormData');
     next();
 };

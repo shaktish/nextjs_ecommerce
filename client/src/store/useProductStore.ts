@@ -108,19 +108,21 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     getAllProductAdmin: async () => {
         try {
             set({ isLoading: true, error: null });
-            const response = await axiosClient.get('/product')
+            const response = await axiosClient.get('/product/getAllProductsAdmin')
             set({
                 isLoading: false,
                 products: response.data.data
             })
         } catch (e) {
-            const axiosError = e as AxiosError<{ message?: string }>;
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
             set({
                 isLoading: false,
-                error: axiosError.response?.data?.message ||
-                    axiosError.message ||
-                    "Failed to get all product",
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to get all product",
+                    details: axiosError.response?.data?.details
+                }
             })
+
         }
 
     },
@@ -140,12 +142,13 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             console.log(response, 'UpdateProductInput response');
             return response.data.data.id ?? null;
         } catch (e) {
-            const axiosError = e as AxiosError<{ message?: string }>;
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
             set({
                 isLoading: false,
-                error: axiosError.response?.data?.message ||
-                    axiosError.message ||
-                    "Failed to update the product",
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to update the product",
+                    details: axiosError.response?.data?.details
+                }
             })
             return null
         }
@@ -160,12 +163,13 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             })
             return response.data.data.id ?? null;
         } catch (e) {
-            const axiosError = e as AxiosError<{ message?: string }>;
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
             set({
                 isLoading: false,
-                error: axiosError.response?.data?.message ||
-                    axiosError.message ||
-                    "Failed to remove the product",
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to remove the product",
+                    details: axiosError.response?.data?.details
+                }
             })
             return null
         }

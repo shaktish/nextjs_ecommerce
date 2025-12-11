@@ -28,7 +28,7 @@ import { toast } from "sonner";
 
 const categories = [
   "Fashion",
-  "Eletronics",
+  "Electronics",
   "Hand Bag",
   "Shoes",
   "Wallet",
@@ -164,8 +164,8 @@ const AddProductAdmin = () => {
     formData.append("isFeatured", String(formState.featured));
 
     // arrays
-    formData.append("sizes", JSON.stringify(sizes));
-    formData.append("colors", JSON.stringify(colors));
+    formData.append("sizes", sizes.join(","));
+    formData.append("colors", colors.join(","));
 
     selectedFiles.forEach((file) => {
       formData.append("images", file);
