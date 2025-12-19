@@ -1,6 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -18,7 +21,8 @@ import React, { useEffect } from "react";
 
 const ProductListAdmin = () => {
   const router = useRouter();
-  const { getAllProductAdmin, products, isLoading } = useProductStore();
+  const { getAllProductAdmin, products, isLoading, removeProduct } =
+    useProductStore();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,14 +37,24 @@ const ProductListAdmin = () => {
   };
 
   const editProductHandler = (id: string) => {
-    router.push(`/admin/products/add/${id}`);
+    router.push(`/admin/products/add?id=${id}`);
   };
 
-  const deleteProductHandler = (id: string) => {};
-  console.log(products, "products");
+  const deleteProductHandler = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      const response = await removeProduct(id);
+      console.log(response, "response");
+      if (response) {
+        toast.success("Product deleted successfully");
+        await getAllProductAdmin();
+      }
+    }
+  };
+
   if (isLoading) {
-    return null;
+    return <Spinner className="mx-auto h-16 w-16" scale={2} />;
   }
+  console.log(products, "products");
   return (
     <div>
       <div className="p-6">
@@ -69,7 +83,7 @@ const ProductListAdmin = () => {
                           <div className="h-12 w-12 rounded-1 bg-grey-100 overflow-hidden">
                             {item.images[0] && (
                               <Image
-                                src={item.images[0]}
+                                src={item.images[0].url || ""}
                                 alt="product"
                                 width={48}
                                 height={48}
@@ -116,6 +130,11 @@ const ProductListAdmin = () => {
                 </TableBody>
               </Table>
             </div>
+            {!isLoading && products?.length === 0 && (
+              <div className=" text-center w-100 text-muted-foreground py-4">
+                <p>No products found</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

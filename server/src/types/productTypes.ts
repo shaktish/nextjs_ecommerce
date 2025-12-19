@@ -1,3 +1,11 @@
+export interface ProductImage {
+    id: string,
+    url: string,
+    publicId: string,
+    productId: string
+}
+
+
 export type Product = {
     name: string;
     brand: string;
@@ -8,6 +16,6 @@ export type Product = {
     colors: string[];
     price: number;
     stock: number;
-    images: string[];
+    images: ProductImage[];
     isFeatured?: boolean;
 };

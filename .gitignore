@@ -5,7 +5,7 @@ node_modules/
 dist/
 
 # Prisma generated files
-/generated/prisma/
+server/generated/prisma
 .prisma/
 
 # Next.js build output

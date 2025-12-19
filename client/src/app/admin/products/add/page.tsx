@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Trash2, Upload } from "lucide-react";
 import Image from "next/image";
 
 import { Label } from "@/components/ui/label";
@@ -21,8 +21,8 @@ import {
   selectInputClass,
   selectLabelClass,
 } from "./utils/className";
-import { useProductStore } from "@/store/useProductStore";
-import { useRouter } from "next/navigation";
+import { ProductImage, useProductStore } from "@/store/useProductStore";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
@@ -87,6 +87,7 @@ interface formState {
 }
 
 const AddProductAdmin = () => {
+  const searchParams = useSearchParams();
   const [formState, setFormState] = useState<formState>({
     name: "",
     brandName: "",
@@ -101,8 +102,43 @@ const AddProductAdmin = () => {
   const [colors, setColors] = useState<string[]>([]);
   const [sizes, setSizes] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [existingPreviews, setExistingPreviews] = useState<string[]>([]);
+  const [exisitingImagesData, setExisitingImagesData] = useState<
+    ProductImage[]
+  >([]);
   const [previews, setPreviews] = useState<string[]>([]);
-  const { addProduct, isLoading, error } = useProductStore();
+  const { addProduct, isLoading, error, updateProduct, getProduct } =
+    useProductStore();
+
+  const editedProductId = searchParams.get("id");
+  const isEditMode = !!editedProductId;
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!isEditMode || !editedProductId) return;
+      const data = await getProduct(editedProductId);
+      if (!data) return;
+      const gender = data?.gender;
+      const genderValue = gender[0].toUpperCase() + gender.slice(1);
+      setFormState({
+        brandName: data?.brand!,
+        category: data?.category!,
+        description: data?.description!,
+        gender: genderValue,
+        name: data?.name!,
+        price: data?.price!,
+        stock: data?.stock!,
+        featured: data?.isFeatured!,
+      });
+      setSizes(data?.sizes);
+      setColors(data?.colors!);
+      const imageUrls = data?.images.map((image) => image.url);
+      setExistingPreviews(imageUrls);
+      setExisitingImagesData(data?.images);
+    };
+
+    fetchProduct();
+  }, [isEditMode, editedProductId]);
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -144,9 +180,11 @@ const AddProductAdmin = () => {
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setSelectedFiles(Array.from(event.target.files));
-    }
+    if (!event.target.files) return;
+    const files = Array.from(event.target.files);
+    setSelectedFiles((prev) => [...prev, ...files]);
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setPreviews((prev) => [...prev, ...newPreviews]);
   };
 
   const submitHandler = async (e: React.FormEvent) => {
@@ -170,20 +208,27 @@ const AddProductAdmin = () => {
     selectedFiles.forEach((file) => {
       formData.append("images", file);
     });
-    const response = await addProduct(formData);
+
+    if (isEditMode && exisitingImagesData.length !== existingPreviews.length) {
+      const deletedImages = exisitingImagesData.filter(
+        (item) => !existingPreviews.includes(item.url)
+      );
+      formData.append(
+        "deletedImageIds",
+        deletedImages.map((item) => item.publicId).join(",")
+      );
+    }
+    let response = null;
+    if (isEditMode) {
+      response = await updateProduct(editedProductId, formData);
+    } else {
+      response = await addProduct(formData);
+    }
+
     if (response) {
       router.push("/admin/products/list");
     }
   };
-
-  useEffect(() => {
-    const urls = selectedFiles.map((file) => URL.createObjectURL(file));
-    setPreviews(urls);
-
-    return () => {
-      urls.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [selectedFiles]);
 
   useEffect(() => {
     if (error) {
@@ -197,11 +242,28 @@ const AddProductAdmin = () => {
       toast.error(message);
     }
   }, [error]);
+
+  const removeImageHandler = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, idx) => idx !== index));
+    setPreviews((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const removeExistingImageHandler = (index: number) => {
+    setExistingPreviews((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const submitButton = isEditMode ? "Update Product" : "Create Product";
+  const submitButtonLoading = isEditMode
+    ? "Updating Product..."
+    : "Creating Product...";
+
   return (
     <div className="p-6">
       <div className="flex flex-col gap-6">
         <header className="flex items-center justify-center mb-2 text-center">
-          <h1 className="text-1xl font-semibold">Add Product</h1>
+          <h1 className="text-1xl font-semibold">
+            {isEditMode ? "Edit" : "Add"} Product
+          </h1>
         </header>
       </div>
       <form
@@ -230,16 +292,58 @@ const AddProductAdmin = () => {
           {previews.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {previews.map((src, index) => (
-                <Image
-                  src={src}
-                  key={src}
-                  alt={`preview-${index}`}
-                  width={80}
-                  height={80}
-                  className="w-20 h-20 object-cover rounded-md"
-                />
+                <div className="relative inline-block" key={index + "preview"}>
+                  <Image
+                    src={src}
+                    key={src}
+                    alt={`preview-${index}`}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 object-cover rounded-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImageHandler(index)}
+                    className="absolute -top-2 -right-2 bg-white text-rose-700 text-xs 
+               rounded-full h-5 w-5 flex items-center justify-center shadow-md cursor-pointer"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
               ))}
             </div>
+          )}
+        </div>
+        <div className="mb-4">
+          {existingPreviews.length > 0 && (
+            <>
+              <span className="font-medium">Existing Images</span>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {existingPreviews.map((src, index) => (
+                  <div
+                    className="relative inline-block"
+                    key={index + "preview"}
+                  >
+                    <Image
+                      src={src}
+                      key={src}
+                      alt={`preview-${index}`}
+                      width={80}
+                      height={80}
+                      className="w-20 h-20 object-cover rounded-md"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImageHandler(index)}
+                      className="absolute -top-2 -right-2 bg-white text-rose-700 text-xs 
+               rounded-full h-5 w-5 flex items-center justify-center shadow-md cursor-pointer"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
         <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
@@ -255,6 +359,7 @@ const AddProductAdmin = () => {
                 className={inputClass}
                 placeholder="Name"
                 onChange={handleInputChange}
+                value={formState.name}
               />
             </div>
           </div>
@@ -268,6 +373,7 @@ const AddProductAdmin = () => {
               onValueChange={(value) =>
                 onValueChangeHandler(value, "brandName")
               }
+              value={formState.brandName}
             >
               <SelectTrigger id="brandName" className={selectInputClass}>
                 <SelectValue placeholder="Select Brand" />
@@ -297,6 +403,7 @@ const AddProductAdmin = () => {
                 className={inputClass}
                 placeholder="Description"
                 onChange={handleInputChange}
+                value={formState.description}
               />
             </div>
           </div>
@@ -307,6 +414,7 @@ const AddProductAdmin = () => {
             <Select
               name="category"
               onValueChange={(value) => onValueChangeHandler(value, "category")}
+              value={formState.category}
             >
               <SelectTrigger id="category" className={selectInputClass}>
                 <SelectValue placeholder="Select Category" />
@@ -329,6 +437,7 @@ const AddProductAdmin = () => {
             <Select
               name="gender"
               onValueChange={(value) => onValueChangeHandler(value, "gender")}
+              value={formState.gender}
             >
               <SelectTrigger id="gender" className={selectInputClass}>
                 <SelectValue placeholder="Select Gender" />
@@ -396,6 +505,7 @@ const AddProductAdmin = () => {
                 type="number"
                 className={inputClass}
                 onChange={handleInputChange}
+                value={formState.price}
               />
             </div>
           </div>
@@ -411,6 +521,7 @@ const AddProductAdmin = () => {
                 className={inputClass}
                 placeholder="Enter Product Stock"
                 onChange={handleInputChange}
+                value={formState.stock}
               />
             </div>
           </div>
@@ -422,7 +533,10 @@ const AddProductAdmin = () => {
               <Checkbox
                 id="featured"
                 name="featured"
-                onCheckedChange={(e) => onCheckboxHandler(e, "featured")}
+                checked={formState.featured}
+                onCheckedChange={(checked: boolean) =>
+                  onCheckboxHandler(checked, "featured")
+                }
               />
             </div>
           </div>
@@ -430,7 +544,7 @@ const AddProductAdmin = () => {
         <div>
           <Button className="mt-4.5 w-full" type="submit" disabled={isLoading}>
             {isLoading && <Spinner />}
-            {isLoading ? "Creating..." : "Create Product"}
+            {isLoading ? submitButtonLoading : submitButton}
           </Button>
         </div>
       </form>

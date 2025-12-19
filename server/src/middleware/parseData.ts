@@ -8,7 +8,7 @@ export const parseFormData = (arrayFields: string[] = []) => (req: Request, res:
         if (typeof value !== "string") return;
 
         // Parse arrays only for specified fields
-        if (arrayFields.includes(key)) {
+        if (arrayFields.includes(key) && body[key]) {
             body[key] = value.split(",").map(v => v.trim());
             return;
         }

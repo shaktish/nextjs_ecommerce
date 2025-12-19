@@ -39,6 +39,6 @@ export const updateProductSchema = Joi.object({
         .messages({
             "array.min": "At least one image URL is required if images are provided."
         }),
-
+    deletedImageIds: Joi.array().items(Joi.string().trim()),
     isFeatured: Joi.boolean(),
 }).min(1);  

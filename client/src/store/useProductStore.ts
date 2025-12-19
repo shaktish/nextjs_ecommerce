@@ -1,7 +1,14 @@
 import axiosClient from '@/utils/axios';
 import axios, { AxiosError } from 'axios';
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware';
+
+export interface ProductImage {
+    id: string,
+    url: string,
+    publicId: string,
+    productId: string
+}
+
 
 type Product = {
     id: string;
@@ -16,49 +23,11 @@ type Product = {
     stock: number;
     soldCount: number;
     rating?: number | null;
-    images: string[];
+    images: ProductImage[];
     createdAt: Date;
     updatedAt: Date;
     isFeatured: boolean;
 }
-
-type CreateProductInput = {
-    name: string;
-    brand: string;
-    description: string;
-    category: string;
-    gender: string;
-    sizes: string[];
-    colors: string[];
-    price: number;
-    stock: number;
-    files: File[];
-    isFeatured: boolean;
-}
-
-type UpdateProductInput = {
-    name: string;
-    brand: string;
-    description: string;
-    category: string;
-    gender: string;
-    sizes: string[];
-    colors: string[];
-    price: number;
-    stock: number;
-    files: string[];
-    isFeatured: boolean;
-}
-
-interface CreateProductResponse {
-    message: string,
-    data?: {
-        id: string,
-        name: string
-    }[]
-}
-
-
 
 type ProductStore = {
     products: Product[] | null;
@@ -69,8 +38,9 @@ type ProductStore = {
     } | null,
     addProduct: (product: FormData) => Promise<string | null>;
     getAllProductAdmin: () => Promise<void>;
-    updateProduct: (id: string, product: UpdateProductInput) => Promise<string | null>;
+    updateProduct: (id: string, product: FormData) => Promise<string | null>;
     removeProduct: (id: string) => Promise<string | null>;
+    getProduct: (id: string) => Promise<Product | null>;
 }
 
 export const useProductStore = create<ProductStore>((set, get) => ({
@@ -105,6 +75,23 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         }
 
     },
+    getProduct: async (id: string) => {
+        try {
+            set({ isLoading: true, error: null });
+            const response = await axiosClient.get(`/product/${id}`)
+            set({ isLoading: false, error: null });
+            return response?.data?.data || null;
+        } catch (e) {
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
+            set({
+                isLoading: false,
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to get the product",
+                    details: axiosError.response?.data?.details
+                }
+            })
+        }
+    },
     getAllProductAdmin: async () => {
         try {
             set({ isLoading: true, error: null });
@@ -126,12 +113,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         }
 
     },
-    updateProduct: async (id: string, product: UpdateProductInput) => {
+    updateProduct: async (id: string, product: FormData) => {
         try {
             set({ isLoading: true, error: null });
-            const response = await axiosClient.put(`/product/${id}`, {
-                ...product,
-            }, {
+            const response = await axiosClient.patch(`/product/${id}`, product, {
                 headers: {
                     "Content-Type": "multipart/form-data"
                 }
@@ -161,7 +146,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             set({
                 isLoading: false,
             })
-            return response.data.data.id ?? null;
+            return response.data.message ?? null;
         } catch (e) {
             const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
             set({
