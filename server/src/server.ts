@@ -14,6 +14,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import corsOptions from './config/cors.ts';
 import { rateLimiter } from './config/rateLimiter.ts';
+import CouponRoutes from "./routes/couponRoutes.ts";
 
 export const prisma = new PrismaClient();
 const app: Express = express();
@@ -26,6 +27,8 @@ app.use(loggerHandler);
 app.get("/health", healthChecker)
 app.use("/api/auth", AuthRoutes)
 app.use("/api/product", ProductRoutes);
+app.use('/api/coupon', CouponRoutes);
+
 app.use(globalErrorHandler);
 
 app.listen(config.port, () => {

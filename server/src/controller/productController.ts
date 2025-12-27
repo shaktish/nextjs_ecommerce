@@ -8,7 +8,6 @@ import { deleteImages, uploadImages } from "../utils/uploadImages.ts";
 
 // create a product
 const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
-    console.log(req.body, 'body create porduct')
     const { error, value } = createProductSchema.validate(req.body, { abortEarly: false });
 
     // validate request body
@@ -20,7 +19,6 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         });
     }
 
-    winstonLogger.info("product response", value);
     const existingProduct = await prisma.product.findFirst({
         where: {
             name: value.name,

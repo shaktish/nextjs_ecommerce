@@ -16,7 +16,6 @@ import { useProductStore } from "@/store/useProductStore";
 import { Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
 import React, { useEffect } from "react";
 
 const ProductListAdmin = () => {
@@ -54,7 +53,7 @@ const ProductListAdmin = () => {
   if (isLoading) {
     return <Spinner className="mx-auto h-16 w-16" scale={2} />;
   }
-  console.log(products, "products");
+
   return (
     <div>
       <div className="p-6">
