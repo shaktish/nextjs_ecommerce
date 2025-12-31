@@ -70,12 +70,13 @@ model Coupon {
   updatedAt DateTime @updatedAt
 }
 
+
+// settings - manage banner 
 model FeaturedBanner {
     id String @id @default(cuid())
-    imageUrl String 
+    url String
+    publicId String
+    sortOrder Int
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
-
-
-// settings - manage banner 

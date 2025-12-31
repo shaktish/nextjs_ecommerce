@@ -53,8 +53,6 @@ const CouponListAdmin = () => {
       }
     }
   };
-
-  console.log(coupons, "coupons");
   return (
     <div>
       <div className="p-6">

@@ -72,6 +72,19 @@ const getAllProductsAdmin = asyncHandler(async (req: AuthenticateRequest, res: R
     return res.status(200).json({ data: products });
 })
 
+const getFeaturedProducts = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    const products = await prisma.product.findMany({
+        where: {
+            isFeatured: true
+        },
+        include: {
+            images: true
+        }
+    });
+    return res.status(200).json({ data: products });
+})
+
+
 
 // get a single product
 const getProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
@@ -160,5 +173,6 @@ export {
     getAllProductsAdmin,
     getProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getFeaturedProducts
 }

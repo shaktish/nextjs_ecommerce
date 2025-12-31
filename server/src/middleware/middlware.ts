@@ -15,7 +15,7 @@ export const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileF
     if (file.mimetype === "image/jpeg" || file.mimetype === "image/jpg" || file.mimetype === "image/png") {
         cb(null, true);
     } else {
-        cb(null, false);
+        cb(new Error("Only JPG, JPEG, and PNG files are allowed!"));
     }
 }
 

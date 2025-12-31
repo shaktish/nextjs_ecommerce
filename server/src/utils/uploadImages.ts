@@ -1,23 +1,22 @@
 import cloudinary from "../config/cloudinary.ts";
 import fs from "fs/promises";
-import { ProductImage } from "../types/productTypes.ts";
+import winstonLogger from "./winstonLogger.ts";
 
 
-export const uploadImages = async (files: Express.Multer.File[]) => {
+export const uploadImages = async (files: Express.Multer.File[], folder = "ecommerce") => {
     if (!files || files.length === 0) return [];
 
     const uploadPromises = files.map(async (file) => {
-        console.log("Files:", files.map(f => f.path));
 
         const result = await cloudinary.uploader.upload(file.path, {
-            folder: "ecommerce"
+            folder: folder
         })
 
         try {
-            console.log("File deleted:", file.path);
+            winstonLogger.info("File deleted:", file.path);
             await fs.unlink(file.path);
         } catch (err) {
-            console.warn("File already deleted or missing:", file.path);
+            winstonLogger.warn("File already deleted or missing:", file.path);
         }
         return { url: result.secure_url, publicId: result.public_id };
     })

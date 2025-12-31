@@ -25,8 +25,8 @@ const generateTokens = async (user: UserI) => {
         .setProtectedHeader({ alg: "HS256", typ: "JWT" })
         .setIssuer("sreevasam-app")
         .setAudience("sreevasam-users")
-        // .setExpirationTime("24h")
-        .setExpirationTime("1m")
+        .setExpirationTime("3h")
+        // .setExpirationTime("1m")
         .setIssuedAt()
         .sign(secret);
 
