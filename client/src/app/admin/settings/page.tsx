@@ -190,7 +190,7 @@ const Settings = () => {
           </div>
           <Button type="submit">
             {isLoading && <Spinner />}
-            {isLoading ? submitButtonLoading : submitButton}{" "}
+            {isLoading ? submitButtonLoading : submitButton}
           </Button>
         </form>
       </div>
