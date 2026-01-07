@@ -1,24 +1,27 @@
-import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/store/useAuthStore";
-import Link from "next/link";
+"use client";
+import {
+  FeatureBanner,
+  useFeatureBannerStore,
+} from "@/store/useFeatureBannerStore";
+import { useEffect, useState } from "react";
+import Banner from "./components/Banner";
+
 function Home() {
-  // const { logout } = useAuthStore();
-  // const logoutHandler = () => {
-  //   logout();
-  // };
+  const [banners, setBanners] = useState<FeatureBanner[]>([]);
+  const { isLoading, getAllFeatureBanners } = useFeatureBannerStore();
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      const data = await getAllFeatureBanners();
+      setBanners(data);
+    };
+    fetchBanners();
+  }, []);
+
   return (
-    <div>
-      Home page
-      <Link
-        href={"/admin"}
-        className="text-[#000] hover:underline font-bold ml-2"
-        aria-label="Register page"
-      >
-        Register
-      </Link>
-      {/* <Button onClick={logoutHandler} aria-label="Logout">
-        Logout
-      </Button> */}
+    <div className="min-h-screen bg-white">
+      <Banner banners={banners} />
+      <section className="py-16"></section>
     </div>
   );
 }
