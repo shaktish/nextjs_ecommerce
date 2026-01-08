@@ -19,7 +19,7 @@ const useSlider = (banners: any[]) => {
         if (banners.length === 0) return;
         const interval = setInterval(() => {
             nextHandler();
-        }, 3000);
+        }, 5000);
         return () => clearInterval(interval);
     }, [banners.length]);
 

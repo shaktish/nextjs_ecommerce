@@ -10,7 +10,7 @@ export interface ProductImage {
 }
 
 
-type Product = {
+export type Product = {
     id: string;
     name: string;
     brand: string;
@@ -30,6 +30,7 @@ type Product = {
 }
 
 type ProductStore = {
+    featureProducts: Product[];
     products: Product[] | null;
     isLoading: boolean,
     error: {
@@ -41,10 +42,12 @@ type ProductStore = {
     updateProduct: (id: string, product: FormData) => Promise<string | null>;
     removeProduct: (id: string) => Promise<string | null>;
     getProduct: (id: string) => Promise<Product | null>;
+    getFeatureProducts: () => Promise<void>;
 }
 
 export const useProductStore = create<ProductStore>((set, get) => ({
     products: [],
+    featureProducts: [],
     isLoading: false,
     error: null,
     addProduct: async (product: FormData) => {
@@ -159,6 +162,25 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             return null
         }
 
+    },
+    getFeatureProducts: async () => {
+        try {
+            set({ isLoading: true, error: null });
+            const response = await axiosClient.get('/product/feature-products')
+            set({
+                isLoading: false,
+                featureProducts: response?.data?.data
+            });
+        } catch (e) {
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
+            set({
+                isLoading: false,
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to create the product",
+                    details: axiosError.response?.data?.details
+                }
+            })
+        }
     }
 
 }))
