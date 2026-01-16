@@ -7,6 +7,7 @@ const userRoutes = ["/home"];
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
+
 export async function middleware(request: NextRequest) {
     console.log('middleware is running')
     const { pathname } = request.nextUrl;
@@ -29,19 +30,28 @@ export async function middleware(request: NextRequest) {
         try {
             const { payload } = await jwtVerify(accessToken, JWT_SECRET);
             const role = (payload as any).role;
+            const isAdmin = role === "Admin";
 
-            // handle role-based redirects
-            if (role === "Admin" && userRoutes.some((r) => pathname.startsWith(r))) {
+            // if user tries to acess /, route them back to /home or /admin based on their permission       
+            if (pathname === "/") {
+                if (isAdmin) {
+                    return NextResponse.redirect(new URL("/admin", request.url));
+                }
+                return NextResponse.redirect(new URL("/home", request.url))
+            }
+            // handle role-based redirects  
+            if (isAdmin && (userRoutes.some((r) => pathname.startsWith(r)))) {
                 return NextResponse.redirect(new URL("/admin", request.url));
             }
 
-            if (role !== "Admin" && adminRoutes.some((r) => pathname.startsWith(r))) {
+            if (!isAdmin && (adminRoutes.some((r) => pathname.startsWith(r)))) {
                 return NextResponse.redirect(new URL("/home", request.url));
             }
 
             return NextResponse.next();
         } catch (e) {
             console.log("Access token expired or invalid.");
+            // fall through to refresh flow
         }
     }
 

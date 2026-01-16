@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from "react";
 
-const useSlider = (banners: any[]) => {
+const useSlider = (banners: any[], pause = false) => {
     const [slide, setSlide] = useState(0);
 
     const nextHandler = () => {
@@ -16,12 +16,10 @@ const useSlider = (banners: any[]) => {
     };
 
     useEffect(() => {
-        if (banners.length === 0) return;
-        const interval = setInterval(() => {
-            nextHandler();
-        }, 5000);
+        if (pause || banners.length === 0) return;
+        const interval = setInterval(nextHandler, 5000);
         return () => clearInterval(interval);
-    }, [banners.length]);
+    }, [banners.length, pause]);
 
     return {
         slide,
