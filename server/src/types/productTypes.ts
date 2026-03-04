@@ -19,3 +19,21 @@ export type Product = {
     images: ProductImage[];
     isFeatured?: boolean;
 };
+
+export interface CreateProductDTO {
+    name: string;
+    description: string;
+    brandId: string;
+    categoryId: string;
+    variants: CreateVariantDTO[];
+}
+
+export interface CreateVariantDTO {
+    genderId: string;
+    sizeId: string;
+    sku: string;
+    price: number;
+    stock: {
+        quantity: number;
+    };
+}

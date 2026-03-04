@@ -5,11 +5,22 @@ import { createProductSchema, updateProductSchema } from "../validations/product
 import winstonLogger from "../utils/winstonLogger.ts";
 import { prisma } from "../server.ts";
 import { deleteImages, uploadImages } from "../utils/uploadImages.ts";
+import { CreateVariantDTO } from "../types/productTypes.ts";
+
 
 // create a product
 const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
-    const { error, value } = createProductSchema.validate(req.body, { abortEarly: false });
+    if (req.body.variants) {
+        try {
+            req.body.variants = JSON.parse(req.body.variants);
+        } catch (err) {
+            return res.status(400).json({
+                message: "Invalid JSON format for variants"
+            });
+        }
+    }
 
+    const { error, value } = createProductSchema.validate(req.body, { abortEarly: false });
     // validate request body
     if (error) {
         winstonLogger.warn("Validation error", error.details);
@@ -19,46 +30,89 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         });
     }
 
-    const existingProduct = await prisma.product.findFirst({
-        where: {
-            name: value.name,
-            brand: value.brand,
-        },
-    });
-
-
-    if (existingProduct) {
-        winstonLogger.warn("Duplicate product attempted", { name: value.name, brand: value.brand });
-        return res.status(409).json({
-            message: "A product with the same name and brand already exists.",
+    // validate sku's for duplicate
+    const skus = value.variants.map((v: CreateVariantDTO) => v.sku);
+    const uniqueSkus = new Set(skus);
+    if (uniqueSkus.size !== skus.length) {
+        return res.status(400).json({
+            message: "Duplicate SKU values in request."
         });
     }
+
     // upload product images if available 
     const files = (req.files as Express.Multer.File[]) || [];
+    let uploadedImages: { url: string; publicId: string }[] = [];
 
-    const imageUrls = await uploadImages(files);
-    // create the product in db 
-    const product = await prisma.product.create({
-        data: {
-            ...value,
-            images: {
-                create: imageUrls.map(img => ({
-                    url: img.url,
-                    publicId: img.publicId,
+    try {
 
-                }))
-            }
+        // 3️⃣ Upload images first
+        uploadedImages = await uploadImages(files);
+
+        // 4️⃣ Run DB transaction
+        const product = await prisma.$transaction(async (tx) => {
+            // tx - transactionClient
+
+            return await tx.product.create({
+                data: {
+                    name: value.name,
+                    description: value.description,
+                    brandId: value.brandId,
+                    categoryId: value.categoryId,
+
+                    images: {
+                        create: uploadedImages.map(img => ({
+                            url: img.url,
+                            publicId: img.publicId
+                        }))
+                    },
+
+                    variants: {
+                        create: value.variants.map((v: CreateVariantDTO) => ({
+                            genderId: v.genderId,
+                            sizeId: v.sizeId,
+                            sku: v.sku,
+                            price: v.price,
+                            stock: {
+                                create: {
+                                    quantity: v.stock.quantity
+                                }
+                            }
+                        }))
+                    }
+                }
+            });
+
+        });
+
+        return res.status(201).json({
+            message: "Product created successfully",
+            data: { id: product.id }
+        });
+
+    } catch (err: any) {
+        const prismaError = err as { code?: string };
+
+        winstonLogger.warn("err", err);
+        // VERY IMPORTANT — rollback Cloudinary images
+        if (uploadedImages.length > 0) {
+            await deleteImages(uploadedImages.map((item) => item.publicId));
         }
-    });
-    winstonLogger.info("Product created successfully", { id: product.id, name: product.name });
 
-    // Send response
-    return res.status(201).json({
-        message: "Product created successfully", data: {
-            id: product.id,
-            name: product.name,
+        if (prismaError.code === "P2002") {
+            return res.status(409).json({
+                message: "Duplicate value violates unique constraint."
+            });
         }
-    });
+
+        if (prismaError.code === "P2003") {
+            return res.status(400).json({
+                message: "Invalid foreign key reference."
+            });
+        }
+        return res.status(500).json({
+            message: "Something went wrong"
+        });
+    }
 
 });
 
@@ -66,7 +120,8 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
 const getAllProductsAdmin = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const products = await prisma.product.findMany({
         include: {
-            images: true
+            images: true,
+            variants: true,
         }
     });
     return res.status(200).json({ data: products });
@@ -84,12 +139,10 @@ const getFeaturedProducts = asyncHandler(async (req: AuthenticateRequest, res: R
     return res.status(200).json({ data: products });
 })
 
-
-
 // get a single product
 const getProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const id = req.params.id;
-    const product = await prisma.product.findUnique({ where: { id }, include: { images: true } });
+    const product = await prisma.product.findUnique({ where: { id }, include: { images: true, variants: true } });
     if (!product) {
         return res.status(404).json({ message: 'Product found' });
     }
@@ -98,8 +151,20 @@ const getProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) 
 
 // update a product (admin)
 const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+
+    if (req.body.variants) {
+        try {
+            req.body.variants = JSON.parse(req.body.variants);
+        } catch (err) {
+            return res.status(400).json({
+                message: "Invalid JSON format for variants"
+            });
+        }
+    }
+
     // validated data 
     const { error, value } = updateProductSchema.validate(req.body, { abortEarly: false });
+
     if (error) {
         winstonLogger.warn("Validation error", error.details);
         return res.status(400).json({
@@ -107,45 +172,119 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
             details: error.details.map(d => d.message),
         });
     }
-    // find the product 
     const id = req.params.id;
-    const product = await prisma.product.findUnique({ where: { id }, include: { images: true } });
-    if (!product) {
-        return res.status(404).json({ message: 'Product not found' });
-    }
-
-    const { deletedImageIds = [], ...updateFields } = value;
-    // Delet existing images
-    // STEP 1: Delete Cloudinary images
-
-    if (deletedImageIds.length > 0) {
-        await deleteImages(deletedImageIds);
-        // STEP 2: Delete image rows in DB
-        await prisma.productImage.deleteMany({
-            where: { publicId: { in: deletedImageIds } },
+    const files = (req.files as Express.Multer.File[]) || [];
+    let uploadedImages: { url: string; publicId: string }[] = [];
+    const { deletedImageIds = [], deletedVariantIds = [], variants = [] } = value;
+    const skuList = variants.map(v => v.sku);
+    if (new Set(skuList).size !== skuList.length) {
+        return res.status(400).json({
+            message: "Duplicate SKU values in request."
         });
     }
 
-
-    // upload product images if available 
-    const files = (req.files as Express.Multer.File[]) || [];
-    const imageUrls = await uploadImages(files);
-
-    // update the product 
-    const updatedProduct = await prisma.product.update({
-        where: { id }, include: { images: true }, data: {
-            ...updateFields,
-            images: {
-                create: imageUrls.map(img => ({
-                    url: img.url,
-                    publicId: img.publicId,
-
-                }))
+    try {
+        // upload product images if available 
+        uploadedImages = await uploadImages(files);
+        // transaction 
+        const updatedProduct = await prisma.$transaction(async (tx) => {
+            // find the product 
+            const product = await tx.product.findUnique({ where: { id } });
+            if (!product) {
+                throw new Error("NOT_FOUND");
             }
-        }
-    });
 
-    return res.status(200).json({ message: 'Product updated successfully', data: updatedProduct });
+            // STEP 2: Delete image rows in DB
+            if (deletedImageIds.length > 0) {
+                await tx.productImage.deleteMany({
+                    where: { publicId: { in: deletedImageIds }, productId: id },
+                });
+            }
+
+            // Delete Removed variants
+            await tx.productVariant.deleteMany({
+                where: { id: { in: deletedVariantIds }, productId: id }
+            });
+
+            // Update existing variants
+            for (const variant of variants.filter((v: { id: string }) => v.id)) {
+                const exists = await tx.productVariant.findFirst({
+                    where: { id: variant.id, productId: id }
+                });
+
+                if (!exists) throw new Error("INVALID_VARIANT");
+
+                await tx.productVariant.update({
+                    where: { id: variant.id },
+                    data: {
+                        price: variant.price,
+                        sku: variant.sku,
+                        stock: {
+                            update: { quantity: variant.stock.quantity }
+                        }
+                    }
+                });
+            }
+            // Create new variants
+            for (const v of variants.filter(v => !v.id)) {
+                await tx.productVariant.create({
+                    data: {
+                        productId: id,
+                        genderId: v.genderId,
+                        sizeId: v.sizeId,
+                        sku: v.sku,
+                        price: v.price,
+                        stock: {
+                            create: { quantity: v.stock.quantity }
+                        }
+                    }
+                });
+            }
+            // update the product 
+            return await tx.product.update({
+                where: { id }, include: { images: true }, data: {
+                    ...(value.name && { name: value.name }),
+                    ...(value.description && { description: value.description }),
+                    ...(value.brandId && { brandId: value.brandId }),
+                    ...(value.categoryId && { categoryId: value.categoryId }),
+                    images: {
+                        create: uploadedImages.map(img => ({
+                            url: img.url,
+                            publicId: img.publicId
+                        }))
+                    }
+                }
+            });
+        });
+
+        // Delete existing images
+        // Delete Cloudinary images
+        if (deletedImageIds.length > 0) {
+            await deleteImages(deletedImageIds);
+        }
+        return res.status(200).json({ message: 'Product updated successfully', data: updatedProduct });
+    } catch (e: any) {
+        winstonLogger.error('Updaete product error', e)
+        // Rollback newly uploaded images
+        if (uploadedImages.length > 0) {
+            await deleteImages(uploadedImages.map(i => i.publicId));
+        }
+
+        if (e.message === "NOT_FOUND") {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        if (e?.code === "P2002") {
+            return res.status(409).json({
+                message: "Duplicate SKU or duplicate gender-size combination."
+            });
+        }
+
+        return res.status(500).json({
+            message: "Something went wrong"
+        });
+    }
+
 })
 
 // delete a product (admin)
@@ -166,6 +305,48 @@ const deleteProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
 })
 
 // fetch products with filter (client)
+
+export const getProductLookups = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    const [brands, cateogries, genders] = await Promise.all([
+        prisma.brand.findMany({
+            where: { isActive: true },
+            select: {
+                id: true,
+                name: true,
+            },
+            orderBy: { name: 'asc' }
+        }),
+        prisma.category.findMany({
+            where: {
+                isActive: true,
+                // parent: null
+            },
+            select: {
+                id: true,
+                name: true,
+                parentId: true
+            },
+            orderBy: { name: 'asc' }
+        }),
+        prisma.gender.findMany({
+            where: {
+                isActive: true
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            orderBy: { name: "asc" }
+
+        })
+    ]);
+
+    return res.status(200).json({
+        brands,
+        cateogries,
+        genders
+    })
+});
 
 
 export {

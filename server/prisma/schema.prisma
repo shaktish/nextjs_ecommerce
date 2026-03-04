@@ -35,26 +35,115 @@ model ProductImage {
   url       String
   publicId  String
   productId String   // required for relation
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)  
+}
+
+model Brand {
+  id String @id @default(cuid())
+  name String @unique
+  slug String @unique
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  products  Product[] 
+}
+
+model Gender {
+  id String @id @default(cuid())
+  name String @unique
+  slug String @unique
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  variants ProductVariant[]
+  sizes Sizes[]
+}
+
+model Sizes {
+  id String @id @default(cuid())
+  name String
+  slug String
+  sortOrder Int 
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt  
+  genderId String 
+  gender Gender @relation(fields: [genderId], references: [id]) 
+  variants ProductVariant[]
+
+  @@unique([name, genderId])
+  @@unique([slug, genderId])
+  @@index([genderId])
+}
+
+model Stock {
+  id        String   @id @default(cuid())
+  variantId String   @unique
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  quantity  Int
+  updatedAt DateTime @updatedAt
+}
+
+model ProductVariant {
+  id String @id @default(cuid())
+
+  productId String
+  product Product @relation(fields: [productId], references: [id])
+
+  genderId String
+  gender Gender @relation(fields: [genderId], references: [id])
+
+  sizeId    String
+  size      Sizes   @relation(fields: [sizeId], references: [id])
+
+  sku       String   @unique
+  price     Int
+  isActive  Boolean  @default(true)
+
+  stock     Stock?
+  soldCount Int @default(0)  
+
+  @@unique([productId, genderId, sizeId])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String
+  isActive  Boolean  @default(true)
+
+  level     Int   
+  isLeaf    Boolean 
+
+  parentId  String?
+  parent    Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryHierarchy")
+
+  products  Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, parentId])
+  @@index([parentId])
 }
 
 model Product {
   id String @id @default(cuid())
   name String
-  brand String
+  brandId String
+  brand Brand @relation(fields: [brandId], references: [id])
   description String
-  category String
-  gender String 
-  sizes String[]
-  colors String[]
-  price Float
-  stock Int 
-  soldCount Int @default(0)
+  categoryId String
+  category Category @relation(fields: [categoryId], references: [id])
+  variants ProductVariant[]
   rating Float? @default(0)
   images ProductImage[]  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isFeatured Boolean @default(false)
+  
+  @@unique([name, brandId])
 }
 
 

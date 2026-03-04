@@ -13,9 +13,9 @@ export interface ProductImage {
 export type Product = {
     id: string;
     name: string;
-    brand: string;
+    brandId: string;
     description: string;
-    category: string;
+    categoryId: string;
     gender: "male" | "female" | "unisex";
     sizes: string[];
     colors: string[];
