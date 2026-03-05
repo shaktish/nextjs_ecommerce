@@ -163,6 +163,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         try {
             req.body.variants = JSON.parse(req.body.variants);
         } catch (err) {
+            winstonLogger.error('update product variants is empty')
             return res.status(400).json({
                 message: "Invalid JSON format for variants"
             });
@@ -181,24 +182,43 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
     }
     const id = req.params.id;
     const files = (req.files as Express.Multer.File[]) || [];
-    let uploadedImages: { url: string; publicId: string }[] = [];
-    const { deletedImageIds = [], deletedVariantIds = [], variants = [] } = value;
-    const skuList = variants.map(v => v.sku);
-    if (new Set(skuList).size !== skuList.length) {
+    if (!Object.keys(req.body).length && files.length === 0) {
         return res.status(400).json({
-            message: "Duplicate SKU values in request."
+            message: "At least one field or image must be provided"
         });
     }
+    let uploadedImages: { url: string; publicId: string }[] = [];
+    const { deletedImageIds = [], deletedVariantIds = [], variants = [] } = value;
 
     try {
         // upload product images if available 
         uploadedImages = await uploadImages(files);
+
+        const sizeIds = (value.variants || []).map((v: CreateVariantDTO) => v.sizeId);
+        const sizes = await prisma.size.findMany({
+            where: { id: { in: sizeIds } }
+        });
+        const sizeMap = new Map(sizes.map(s => [s.id, s]));
+
+
         // transaction 
         const updatedProduct = await prisma.$transaction(async (tx) => {
             // find the product 
             const product = await tx.product.findUnique({ where: { id } });
             if (!product) {
                 throw new Error("NOT_FOUND");
+            }
+            // get lookups
+            let brand = null
+            let gender = null
+            let category = null
+
+            if (value.brandId && value.genderId && value.categoryId) {
+                [brand, gender, category] = await Promise.all([
+                    prisma.brand.findUnique({ where: { id: value.brandId } }),
+                    prisma.gender.findUnique({ where: { id: value.genderId } }),
+                    prisma.category.findUnique({ where: { id: value.categoryId } })
+                ]);
             }
 
             // STEP 2: Delete image rows in DB
@@ -212,47 +232,65 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
             await tx.productVariant.deleteMany({
                 where: { id: { in: deletedVariantIds }, productId: id }
             });
-
-            // Update existing variants
-            for (const variant of variants.filter((v: { id: string }) => v.id)) {
-                const exists = await tx.productVariant.findFirst({
-                    where: { id: variant.id, productId: id }
+            if (sizeIds) {
+                // Update existing variants
+                const existingVariants = await tx.productVariant.findMany({
+                    where: { productId: id },
+                    select: { id: true }
                 });
+                const existingIds = new Set(existingVariants.map(v => v.id));
 
-                if (!exists) throw new Error("INVALID_VARIANT");
-
-                await tx.productVariant.update({
-                    where: { id: variant.id },
-                    data: {
-                        price: variant.price,
-                        sku: variant.sku,
-                        stock: {
-                            update: { quantity: variant.stock.quantity }
-                        }
+                for (const variant of variants.filter((v: { id: string }) => v.id)) {
+                    if (!existingIds.has(variant.id)) {
+                        throw new Error("INVALID_VARIANT");
                     }
-                });
-            }
-            // Create new variants
-            for (const v of variants.filter(v => !v.id)) {
-                await tx.productVariant.create({
-                    data: {
-                        productId: id,
-                        genderId: v.genderId,
-                        sizeId: v.sizeId,
-                        sku: v.sku,
-                        price: v.price,
-                        stock: {
-                            create: { quantity: v.stock.quantity }
+
+                    await tx.productVariant.update({
+                        where: { id: variant.id },
+                        data: {
+                            price: variant.price,
+                            sku: variant.sku,
+                            stock: {
+                                update: { quantity: variant.stock.quantity }
+                            }
                         }
-                    }
-                });
+                    });
+                }
+
+                // Create new variants
+                const newVariants = variants
+                    .filter((v: { id: string }) => !v.id)
+                    .map(v => {
+                        const size = sizeMap.get(v.sizeId);
+                        if (!size) throw new Error("INVALID_SIZE");
+                        return {
+                            productId: id,
+                            sizeId: size.id,
+                            sku: generateSku({
+                                brand: brand!.slug,
+                                gender: gender!.slug,
+                                category: category!.slug,
+                                size: size.slug
+                            }),
+                            price: v.price,
+                            stock: {
+                                create: { quantity: v.stock.quantity }
+                            }
+                        };
+                    });
+
+                for (const v of newVariants) {
+                    await tx.productVariant.create({ data: v });
+                }
             }
+
             // update the product 
             return await tx.product.update({
                 where: { id }, include: { images: true }, data: {
                     ...(value.name && { name: value.name }),
                     ...(value.description && { description: value.description }),
                     ...(value.brandId && { brandId: value.brandId }),
+                    ...(value.genderId && { genderId: value.genderId }),
                     ...(value.categoryId && { categoryId: value.categoryId }),
                     images: {
                         create: uploadedImages.map(img => ({
@@ -265,7 +303,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         });
 
         // Delete existing images
-        // Delete Cloudinary images
+        // - Delete Cloudinary images
         if (deletedImageIds.length > 0) {
             await deleteImages(deletedImageIds);
         }
@@ -314,7 +352,7 @@ const deleteProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
 // fetch products with filter (client)
 
 export const getProductLookups = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
-    const [brands, cateogries, genders] = await Promise.all([
+    const [brands, categories, genders] = await Promise.all([
         prisma.brand.findMany({
             where: { isActive: true },
             select: {
@@ -331,7 +369,10 @@ export const getProductLookups = asyncHandler(async (req: AuthenticateRequest, r
             select: {
                 id: true,
                 name: true,
-                parentId: true
+                parentId: true,
+                isLeaf: true,
+                level: true,
+                isActive: true,
             },
             orderBy: { name: 'asc' }
         }),
@@ -342,15 +383,6 @@ export const getProductLookups = asyncHandler(async (req: AuthenticateRequest, r
             select: {
                 id: true,
                 name: true,
-                sizes: {
-                    where: { isActive: true },
-                    select: {
-                        id: true,
-                        name: true,
-                        sortOrder: true
-                    },
-                    orderBy: { sortOrder: 'asc' }
-                }
             },
             orderBy: { name: "asc" }
 
@@ -359,7 +391,7 @@ export const getProductLookups = asyncHandler(async (req: AuthenticateRequest, r
 
     return res.status(200).json({
         brands,
-        cateogries,
+        categories,
         genders
     })
 });

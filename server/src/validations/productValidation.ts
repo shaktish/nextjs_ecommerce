@@ -45,5 +45,5 @@ export const updateProductSchema = Joi.object({
         }),
     deletedImageIds: Joi.array().items(Joi.string().trim()).optional(),
     deletedVariantIds: Joi.array().items(Joi.string().trim()).optional(),
-    isFeatured: Joi.boolean().optional,
-}).min(1);  
+    isFeatured: Joi.boolean().optional(),
+})
