@@ -24,12 +24,12 @@ export interface CreateProductDTO {
     name: string;
     description: string;
     brandId: string;
+    genderId: string;
     categoryId: string;
     variants: CreateVariantDTO[];
 }
 
 export interface CreateVariantDTO {
-    genderId: string;
     sizeId: string;
     sku: string;
     price: number;

@@ -5,9 +5,8 @@ const stockSchema = Joi.object({
 });
 
 const variantSchema = Joi.object({
-    genderId: Joi.string().required(),
+    id: Joi.string().optional(),
     sizeId: Joi.string().required(),
-    sku: Joi.string().required(),
     price: Joi.number().integer().min(0).required(),
     stock: stockSchema.required()
 });
@@ -16,6 +15,7 @@ export const createProductSchema = Joi.object({
     name: Joi.string().trim().min(2).max(100).required(),
     brandId: Joi.string().required(),
     description: Joi.string().trim().min(5).max(500).required(),
+    genderId: Joi.string().required(),
     categoryId: Joi.string().required(),
     variants: Joi.array()
         .items(variantSchema)
@@ -33,6 +33,7 @@ export const updateProductSchema = Joi.object({
     brandId: Joi.string().optional(),
     description: Joi.string().trim().min(5).max(500).optional(),
     categoryId: Joi.string().optional(),
+    genderId: Joi.string().optional(),
     variants: Joi.array()
         .items(variantSchema)
         .min(1)

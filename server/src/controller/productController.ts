@@ -6,6 +6,7 @@ import winstonLogger from "../utils/winstonLogger.ts";
 import { prisma } from "../server.ts";
 import { deleteImages, uploadImages } from "../utils/uploadImages.ts";
 import { CreateVariantDTO } from "../types/productTypes.ts";
+import { generateSku } from "../utils/product.utils.ts";
 
 
 // create a product
@@ -30,23 +31,33 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         });
     }
 
-    // validate sku's for duplicate
-    const skus = value.variants.map((v: CreateVariantDTO) => v.sku);
-    const uniqueSkus = new Set(skus);
-    if (uniqueSkus.size !== skus.length) {
-        return res.status(400).json({
-            message: "Duplicate SKU values in request."
-        });
-    }
-
     // upload product images if available 
     const files = (req.files as Express.Multer.File[]) || [];
     let uploadedImages: { url: string; publicId: string }[] = [];
+
 
     try {
 
         // 3️⃣ Upload images first
         uploadedImages = await uploadImages(files);
+
+        const [brand, gender, category] = await Promise.all([
+            prisma.brand.findUnique({ where: { id: value.brandId } }),
+            prisma.gender.findUnique({ where: { id: value.genderId } }),
+            prisma.category.findUnique({ where: { id: value.categoryId } })
+        ]);
+
+        if (!brand || !gender || !category) {
+            return res.status(400).json({
+                message: "Invalid brand, gender or category"
+            });
+        }
+
+        const sizeIds = value.variants.map((v: CreateVariantDTO) => v.sizeId);
+        const sizes = await prisma.size.findMany({
+            where: { id: { in: sizeIds } }
+        });
+        const sizeMap = new Map(sizes.map(s => [s.id, s]));
 
         // 4️⃣ Run DB transaction
         const product = await prisma.$transaction(async (tx) => {
@@ -58,7 +69,7 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                     description: value.description,
                     brandId: value.brandId,
                     categoryId: value.categoryId,
-
+                    genderId: value.genderId,
                     images: {
                         create: uploadedImages.map(img => ({
                             url: img.url,
@@ -67,17 +78,19 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                     },
 
                     variants: {
-                        create: value.variants.map((v: CreateVariantDTO) => ({
-                            genderId: v.genderId,
-                            sizeId: v.sizeId,
-                            sku: v.sku,
-                            price: v.price,
-                            stock: {
-                                create: {
-                                    quantity: v.stock.quantity
+                        create: value.variants.map((v: CreateVariantDTO) => {
+                            const size = sizeMap.get(v.sizeId);
+                            return ({
+                                sizeId: v.sizeId,
+                                sku: generateSku({ brand: brand!.slug, gender: gender!.slug, category: category!.slug, size: size!.slug }),
+                                price: v.price,
+                                stock: {
+                                    create: {
+                                        quantity: v.stock.quantity
+                                    }
                                 }
-                            }
-                        }))
+                            })
+                        })
                     }
                 }
             });
@@ -96,12 +109,6 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         // VERY IMPORTANT — rollback Cloudinary images
         if (uploadedImages.length > 0) {
             await deleteImages(uploadedImages.map((item) => item.publicId));
-        }
-
-        if (prismaError.code === "P2002") {
-            return res.status(409).json({
-                message: "Duplicate value violates unique constraint."
-            });
         }
 
         if (prismaError.code === "P2003") {
@@ -335,6 +342,15 @@ export const getProductLookups = asyncHandler(async (req: AuthenticateRequest, r
             select: {
                 id: true,
                 name: true,
+                sizes: {
+                    where: { isActive: true },
+                    select: {
+                        id: true,
+                        name: true,
+                        sortOrder: true
+                    },
+                    orderBy: { sortOrder: 'asc' }
+                }
             },
             orderBy: { name: "asc" }
 

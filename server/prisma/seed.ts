@@ -1,7 +1,7 @@
 // import { PrismaClient } from "@prisma/client";
 import { PrismaClient } from "../generated/prisma/index";
 import { hashPassword } from "../src/utils/hashPassword";
-import { brands, categories, genders, menSubCategories, sizes, womenSubCategories } from "../src/lookup/lookup";
+import { brands, categories, genders, products, sizes, } from "../src/lookup/lookup";
 
 const prisma = new PrismaClient();
 
@@ -36,7 +36,7 @@ const seedBrand = async () => {
     for (const brand of brands) {
         await prisma.brand.upsert({
             where: {
-                slug: brand.slug
+                id: brand.id
             },
             update: {},
             create: brand
@@ -46,146 +46,80 @@ const seedBrand = async () => {
 }
 
 const seedGender = async () => {
-    const map: Record<string, string> = {};
     for (const gender of genders) {
-        const g = await prisma.gender.upsert({
+        await prisma.gender.upsert({
             where: {
-                slug: gender.slug
+                id: gender.id
             },
             update: {},
             create: gender
         })
-        map[gender.slug] = g.id
     }
     console.log('gender seeded')
-    return map; // { men: 'cuid...', women: 'cuid...' }
 
 }
 
-const seedSizes = async (genderMap: Record<string, string>) => {
+const seedSizes = async () => {
     for (const size of sizes) {
-        await prisma.sizes.upsert({
+        await prisma.size.upsert({
             where: {
-                slug_genderId: {
-                    slug: size.slug,
-                    genderId: genderMap.men,
-                },
-
+                id: size.id,
             },
             update: {},
-            create: {
-                ...size,
-                genderId: genderMap.men,
-            }
-        })
-    }
-
-    for (const size of sizes) {
-        await prisma.sizes.upsert({
-            where: {
-                slug_genderId: {
-                    slug: size.slug,
-                    genderId: genderMap.women,
-                },
-
-            },
-            update: {},
-            create: {
-                ...size,
-                genderId: genderMap.women,
-            }
+            create: size
         })
     }
 
     console.log('Sizes seeded for men and women')
-
 }
 
 const seedCategories = async () => {
-    const categoriesMap: Record<string, string> = {};
+
     for (const category of categories) {
-        const existing = await prisma.category.findFirst({
-            where: {
-                slug: category.slug,
-                parentId: category.parentId ?? null,
-            },
-        });
-
-        if (existing) {
-            categoriesMap[category.slug] = existing.id;
-            continue
-        }
-        else {
-            const data = await prisma.category.create({
-                data: {
-                    name: category.name,
-                    slug: category.slug,
-                    level: category.level,
-                    parentId: category.parentId ?? null,
-                    isLeaf: category.isLeaf,
-                },
-            });
-            categoriesMap[category.slug] = data.id
-        }
-
-    }
-
-    return categoriesMap;
-}
-
-type CategoriesMap = {
-    men?: string;
-    women?: string;
-};
-
-const seedSubcategoriesForParent = async (
-    subCategories: typeof menSubCategories,
-    parentId: string | null,
-) => {
-    for (const category of subCategories) {
-        const existing = await prisma.category.findFirst({
-            where: {
-                slug: category.slug,
-                parentId,
-            },
-        });
-
-        if (existing) continue;
-
-        await prisma.category.create({
-            data: {
-                name: category.name,
-                slug: category.slug,
-                level: category.level,
-                parentId,
-                isLeaf: category.isLeaf,
-            },
-        });
+        await prisma.category.upsert({
+            where: { id: category.id },
+            update: {},
+            create: category
+        })
     }
 };
 
-const seedSubcategories = async (categoriesMap: CategoriesMap) => {
-    const menParentId = categoriesMap.men ?? null;
-    const womenParentId = categoriesMap.women ?? null;
+const seedProducts = async () => {
+    for (const product of products) {
+        await prisma.product.upsert({
+            where: {
+                name_brandId: {
+                    name: product.name,
+                    brandId: product.brandId
+                }
+            },
+            update: {},
+            create: {
+                name: product.name,
+                description: product.description,
+                brandId: product.brandId,
+                categoryId: product.categoryId,
+                genderId: product.genderId
+            }
+        })
+    }
 
-    await seedSubcategoriesForParent(menSubCategories, menParentId);
-    await seedSubcategoriesForParent(womenSubCategories, womenParentId);
-
-    console.log('subcategories created');
 }
 
 const addLookups = async () => {
-    seedBrand();
-    const genderMap = await seedGender();
-    seedSizes(genderMap);
-    const categoriesMap = await seedCategories();
-    seedSubcategories(categoriesMap);
+    await prisma.$transaction(async (tx) => {
+        await seedBrand();
+        await seedGender();
+        await seedSizes();
+        await seedCategories();
+        await seedProducts();
+    });
 
 }
 
 async function main() {
-    createAdminUser();
-    addLookups();
+    await createAdminUser();
+    await addLookups();
 }
 
 main()
