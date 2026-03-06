@@ -86,7 +86,7 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                                 price: v.price,
                                 stock: {
                                     create: {
-                                        quantity: v.stock.quantity
+                                        quantity: v.stock
                                     }
                                 }
                             })
@@ -351,28 +351,32 @@ const deleteProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
 
 // fetch products with filter (client)
 
+export const getCategoriesLookup = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    const categories = await prisma.category.findMany({
+        where: {
+            isActive: true
+        },
+        select: {
+            id: true,
+            name: true,
+            parentId: true,
+            isLeaf: true,
+            level: true,
+            isActive: true,
+        },
+        orderBy: { name: 'asc' }
+    })
+
+    return res.status(200).json(categories);
+})
+
 export const getProductLookups = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
-    const [brands, categories, genders] = await Promise.all([
+    const [brands, gender, size] = await Promise.all([
         prisma.brand.findMany({
             where: { isActive: true },
             select: {
                 id: true,
                 name: true,
-            },
-            orderBy: { name: 'asc' }
-        }),
-        prisma.category.findMany({
-            where: {
-                isActive: true,
-                // parent: null
-            },
-            select: {
-                id: true,
-                name: true,
-                parentId: true,
-                isLeaf: true,
-                level: true,
-                isActive: true,
             },
             orderBy: { name: 'asc' }
         }),
@@ -385,14 +389,23 @@ export const getProductLookups = asyncHandler(async (req: AuthenticateRequest, r
                 name: true,
             },
             orderBy: { name: "asc" }
-
+        }),
+        prisma.size.findMany({
+            where: {
+                isActive: true
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            orderBy: { name: "asc" }
         })
     ]);
 
     return res.status(200).json({
         brands,
-        categories,
-        genders
+        gender,
+        size
     })
 });
 
