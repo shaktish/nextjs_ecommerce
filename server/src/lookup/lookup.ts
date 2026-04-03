@@ -92,12 +92,12 @@ export const products = [
             {
                 "sizeId": largeSize,
                 "price": 999,
-                "stock": { "quantity": 50 }
+                "stock": 50
             },
             {
                 "sizeId": mediumSize,
                 "price": 999,
-                "stock": { "quantity": 30 }
+                "stock": 30
             }
         ]
 

@@ -18,3 +18,4 @@ router.delete('/:id', AuthenticateJWT, isAdmin, deleteProduct);
 
 
 export default router;
+

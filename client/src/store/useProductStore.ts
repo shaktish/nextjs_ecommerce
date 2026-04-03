@@ -1,3 +1,4 @@
+import { Category, ProductApiResponse } from '@/types/product.types';
 import axiosClient from '@/utils/axios';
 import axios, { AxiosError } from 'axios';
 import { create } from 'zustand'
@@ -6,9 +7,18 @@ export interface ProductImage {
     id: string,
     url: string,
     publicId: string,
-    productId: string
 }
 
+type LookupItem = {
+    id: string;
+    name: string;
+};
+
+export type ProductLookup = {
+    brands: LookupItem[];
+    gender: LookupItem[];
+    size: LookupItem[];
+} | null;
 
 export type Product = {
     id: string;
@@ -16,9 +26,6 @@ export type Product = {
     brandId: string;
     description: string;
     categoryId: string;
-    gender: "male" | "female" | "unisex";
-    sizes: string[];
-    colors: string[];
     price: number;
     stock: number;
     soldCount: number;
@@ -32,6 +39,8 @@ export type Product = {
 type ProductStore = {
     featureProducts: Product[];
     products: Product[] | null;
+    productLookup: ProductLookup;
+    categoriesLookup: Category[];
     isLoading: boolean,
     error: {
         message: string,
@@ -41,13 +50,17 @@ type ProductStore = {
     getAllProductAdmin: () => Promise<void>;
     updateProduct: (id: string, product: FormData) => Promise<string | null>;
     removeProduct: (id: string) => Promise<string | null>;
-    getProduct: (id: string) => Promise<Product | null>;
+    getProduct: (id: string) => Promise<ProductApiResponse | null>;
     getFeatureProducts: () => Promise<void>;
+    getLookup: () => Promise<void>;
+    getCategoriesLookup: () => Promise<void>;
 }
 
 export const useProductStore = create<ProductStore>((set, get) => ({
     products: [],
     featureProducts: [],
+    productLookup: null,
+    categoriesLookup: [],
     isLoading: false,
     error: null,
     addProduct: async (product: FormData) => {
@@ -81,9 +94,9 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     getProduct: async (id: string) => {
         try {
             set({ isLoading: true, error: null });
-            const response = await axiosClient.get(`/product/${id}`)
+            const response = await axiosClient.get<ProductApiResponse>(`/product/${id}`)
             set({ isLoading: false, error: null });
-            return response?.data?.data || null;
+            return response?.data || null;
         } catch (e) {
             const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
             set({
@@ -93,6 +106,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
                     details: axiosError.response?.data?.details
                 }
             })
+            return null;
         }
     },
     getAllProductAdmin: async () => {
@@ -181,6 +195,45 @@ export const useProductStore = create<ProductStore>((set, get) => ({
                 }
             })
         }
+    },
+    getLookup: async () => {
+        try {
+            set({ isLoading: true, error: null });
+            const response = await axiosClient.get('/product/lookup')
+            set({
+                isLoading: false,
+                productLookup: response?.data
+            });
+        } catch (e) {
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
+            set({
+                isLoading: false,
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to create the product",
+                    details: axiosError.response?.data?.details
+                }
+            })
+        }
+    },
+    getCategoriesLookup: async () => {
+        try {
+            set({ isLoading: true, error: null });
+            const response = await axiosClient.get<Category[]>('/product/categories')
+            set({
+                isLoading: false,
+                categoriesLookup: response?.data
+            });
+        } catch (e) {
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
+            set({
+                isLoading: false,
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to create the product",
+                    details: axiosError.response?.data?.details
+                }
+            })
+        }
     }
+
 
 }))

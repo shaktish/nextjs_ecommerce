@@ -93,16 +93,16 @@ const ProductListAdmin = () => {
                           <div className="font-medium">
                             <p>{item.name}</p>
                             <p className="text-sm text-muted-foreground">
-                              Size: {item.sizes.join(",")}
+                              Size: {item?.sizes?.join(",")}
                             </p>
                             <p></p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{item.price.toFixed(2)}</TableCell>
-                      <TableCell>{item.stock} Item(s) left</TableCell>
+                      <TableCell>{item?.price?.toFixed(2)}</TableCell>
+                      <TableCell>{item?.stock} Item(s) left</TableCell>
                       <TableCell className="font-medium">
-                        {item.category.toLocaleUpperCase()}
+                        {item.category?.toLocaleUpperCase()}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

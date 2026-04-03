@@ -24,3 +24,5 @@ yarn-error.log*
 # Optional: Editor files
 .vscode/
 .idea/
+
+.env

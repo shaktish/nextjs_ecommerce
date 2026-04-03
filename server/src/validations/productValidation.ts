@@ -38,7 +38,6 @@ export const updateProductSchema = Joi.object({
         .items(variantSchema)
         .min(1)
         .optional(),
-
     images: Joi.array().items(Joi.string().uri().trim()).min(1).optional()
         .messages({
             "array.min": "At least one image URL is required if images are provided.",

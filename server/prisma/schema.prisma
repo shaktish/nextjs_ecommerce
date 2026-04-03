@@ -74,7 +74,7 @@ model Size {
 model Stock {
   id        String   @id @default(cuid())
   variantId String   @unique
-  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  variant   ProductVariant @relation(fields: [variantId], references: [id],  onDelete: Cascade)
   quantity  Int
   updatedAt DateTime @updatedAt
 }

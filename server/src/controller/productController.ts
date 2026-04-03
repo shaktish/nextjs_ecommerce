@@ -129,7 +129,8 @@ const getAllProductsAdmin = asyncHandler(async (req: AuthenticateRequest, res: R
         include: {
             images: true,
             variants: true,
-        }
+        },
+        orderBy: { updatedAt: 'desc' }
     });
     return res.status(200).json({ data: products });
 })
@@ -149,11 +150,26 @@ const getFeaturedProducts = asyncHandler(async (req: AuthenticateRequest, res: R
 // get a single product
 const getProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const id = req.params.id;
-    const product = await prisma.product.findUnique({ where: { id }, include: { images: true, variants: true } });
+    const product = await prisma.product.findUnique({
+        where: { id }, include: {
+            images: true, variants: {
+                include: {
+                    stock: true
+                }
+            },
+        }
+    });
+    const formatted = {
+        ...product,
+        variants: product?.variants.map(v => ({
+            ...v,
+            stock: v.stock?.quantity ?? 0
+        }))
+    };
     if (!product) {
         return res.status(404).json({ message: 'Product found' });
     }
-    return res.status(200).json({ data: product });
+    return res.status(200).json(formatted);
 })
 
 // update a product (admin)
@@ -166,6 +182,17 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
             winstonLogger.error('update product variants is empty')
             return res.status(400).json({
                 message: "Invalid JSON format for variants"
+            });
+        }
+    }
+
+    if (req.body.deletedVariantIds) {
+        try {
+            req.body.deletedVariantIds = JSON.parse(req.body.deletedVariantIds);
+        } catch (err) {
+            winstonLogger.error('update product deletedVariantIds is invalid')
+            return res.status(400).json({
+                message: "Invalid JSON format for deletedVariantIds"
             });
         }
     }
@@ -195,6 +222,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         uploadedImages = await uploadImages(files);
 
         const sizeIds = (value.variants || []).map((v: CreateVariantDTO) => v.sizeId);
+
         const sizes = await prisma.size.findMany({
             where: { id: { in: sizeIds } }
         });
@@ -204,22 +232,28 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         // transaction 
         const updatedProduct = await prisma.$transaction(async (tx) => {
             // find the product 
-            const product = await tx.product.findUnique({ where: { id } });
+            const product = await tx.product.findUnique({
+                where: { id }, include: {
+                    brand: true,
+                    gender: true,
+                    category: true
+                }
+            });
             if (!product) {
                 throw new Error("NOT_FOUND");
             }
             // get lookups
-            let brand = null
-            let gender = null
-            let category = null
+            const brand = value.brandId
+                ? await tx.brand.findUnique({ where: { id: value.brandId } })
+                : product!.brand;
 
-            if (value.brandId && value.genderId && value.categoryId) {
-                [brand, gender, category] = await Promise.all([
-                    prisma.brand.findUnique({ where: { id: value.brandId } }),
-                    prisma.gender.findUnique({ where: { id: value.genderId } }),
-                    prisma.category.findUnique({ where: { id: value.categoryId } })
-                ]);
-            }
+            const gender = value.genderId
+                ? await tx.gender.findUnique({ where: { id: value.genderId } })
+                : product!.gender;
+
+            const category = value.categoryId
+                ? await tx.category.findUnique({ where: { id: value.categoryId } })
+                : product!.category;
 
             // STEP 2: Delete image rows in DB
             if (deletedImageIds.length > 0) {
@@ -228,7 +262,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                 });
             }
 
-            // Delete Removed variants
+            // Delete Removed variant
             await tx.productVariant.deleteMany({
                 where: { id: { in: deletedVariantIds }, productId: id }
             });
@@ -239,22 +273,24 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                     select: { id: true }
                 });
                 const existingIds = new Set(existingVariants.map(v => v.id));
-
                 for (const variant of variants.filter((v: { id: string }) => v.id)) {
+                    const size = sizeMap.get(variant.sizeId);
+
                     if (!existingIds.has(variant.id)) {
                         throw new Error("INVALID_VARIANT");
                     }
-
                     await tx.productVariant.update({
                         where: { id: variant.id },
                         data: {
                             price: variant.price,
-                            sku: variant.sku,
+                            sizeId: variant.sizeId,
+                            sku: generateSku({ brand: brand!.slug, category: category!.slug, gender: gender!.slug, size: size!.slug, }),
                             stock: {
-                                update: { quantity: variant.stock.quantity }
+                                update: { quantity: variant.stock }
                             }
                         }
                     });
+
                 }
 
                 // Create new variants
@@ -274,7 +310,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                             }),
                             price: v.price,
                             stock: {
-                                create: { quantity: v.stock.quantity }
+                                create: { quantity: v.stock }
                             }
                         };
                     });
@@ -286,7 +322,49 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
 
             // update the product 
             return await tx.product.update({
-                where: { id }, include: { images: true }, data: {
+                where: { id },
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    brand: {
+                        select: {
+                            id: true,
+                            name: true
+                        }
+                    },
+                    gender: {
+                        select: {
+                            id: true,
+                            name: true
+                        }
+                    },
+                    category: {
+                        select: {
+                            id: true,
+                            name: true
+                        }
+                    },
+                    images: {
+                        select: {
+                            id: true,
+                            url: true
+                        }
+                    },
+                    variants: {
+                        select: {
+                            id: true,
+                            price: true,
+                            sku: true,
+                            stock: {
+                                select: {
+                                    quantity: true
+                                }
+                            }
+                        }
+                    }
+                },
+                data: {
                     ...(value.name && { name: value.name }),
                     ...(value.description && { description: value.description }),
                     ...(value.brandId && { brandId: value.brandId }),
@@ -302,8 +380,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
             });
         });
 
-        // Delete existing images
-        // - Delete Cloudinary images
+        // Delete existing cloudinary images
         if (deletedImageIds.length > 0) {
             await deleteImages(deletedImageIds);
         }
