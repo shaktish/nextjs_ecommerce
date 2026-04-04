@@ -1,4 +1,4 @@
-import { Category, ProductApiResponse } from '@/types/product.types';
+import { Category, ProductApiResponse, Variant } from '@/types/product.types';
 import axiosClient from '@/utils/axios';
 import axios, { AxiosError } from 'axios';
 import { create } from 'zustand'
@@ -34,6 +34,7 @@ export type Product = {
     createdAt: Date;
     updatedAt: Date;
     isFeatured: boolean;
+    variants: Variant[];
 }
 
 type ProductStore = {
@@ -76,7 +77,6 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             set({
                 isLoading: false,
             })
-            console.log(response, 'CreateProductInput response');
             return response.data.data.id ?? null;
         } catch (e) {
             const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
@@ -141,7 +141,6 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             set({
                 isLoading: false,
             })
-            console.log(response, 'UpdateProductInput response');
             return response.data.data.id ?? null;
         } catch (e) {
             const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;

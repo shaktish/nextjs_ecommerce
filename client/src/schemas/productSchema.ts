@@ -8,7 +8,7 @@ export const productSchema = z.object({
     featured: z.boolean().optional(),
     variants: z.array(
         z.object({
-            id: z.string().optional(),
+            id: z.string().optional().nullable(),
             sizeId: z.string(),
             price: z.number().min(1, 'Enter a value'),
             stock: z.number().min(1, 'Enter a value'),

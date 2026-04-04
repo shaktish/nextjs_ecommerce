@@ -62,7 +62,6 @@ const AdminSidebar = ({ isOpen, toggle }: SidebarProps) => {
   const router = useRouter();
   const { logout } = useAuthStore();
   const handleLogout = async () => {
-    console.log("logout");
     await logout();
     router.push("/auth/login");
   };
@@ -71,7 +70,7 @@ const AdminSidebar = ({ isOpen, toggle }: SidebarProps) => {
       className={cn(
         "fixed left-0 top-0 z-40 h-screen bg-background transition-all duration-300",
         isOpen ? "w-50" : "w-12",
-        "border-r"
+        "border-r",
       )}
     >
       <div className="flex h-16 items-center justify-between px-4">
@@ -97,7 +96,7 @@ const AdminSidebar = ({ isOpen, toggle }: SidebarProps) => {
             <div
               key={item.name}
               className={cn(
-                "flex items-center px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                "flex items-center px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer",
               )}
               onClick={
                 item.name === "Logout"

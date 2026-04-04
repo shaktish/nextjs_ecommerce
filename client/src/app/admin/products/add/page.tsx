@@ -108,8 +108,12 @@ const AddProductAdmin = () => {
   } = useImageState(setValue);
 
   useEffect(() => {
-    getLookup();
-    getCategoriesLookup();
+    if (!productLookup) {
+      getLookup();
+    }
+    if (!categoriesLookup.length) {
+      getCategoriesLookup();
+    }
   }, []);
 
   useEffect(() => {
@@ -126,7 +130,7 @@ const AddProductAdmin = () => {
     };
 
     fetchProduct();
-  }, [isEditMode, editedProductId, categoriesLookup]);
+  }, [isEditMode, editedProductId, categoriesLookup.length]);
 
   useEffect(() => {
     if (error) {
@@ -148,6 +152,16 @@ const AddProductAdmin = () => {
   const onSubmit = async (data: ProductFormType) => {
     let response;
     const categoryId = data.categories.at(-1);
+    const removedVariantsWithId = Object.entries(removedVariants).reduce(
+      (acc, [key, variant]) => {
+        if (variant.id) {
+          acc[key] = variant;
+        }
+        return acc;
+      },
+      {} as Record<string, Variant>,
+    );
+
     const formData = buildSubmitFormData({
       formState: {
         name: data.name,
@@ -162,7 +176,7 @@ const AddProductAdmin = () => {
       isEditMode,
       existingImagesData: existingImages,
       existingPreviews: existingImagePreviews,
-      removedVariants,
+      removedVariants: removedVariantsWithId,
     });
     if (isEditMode) {
       response = await updateProduct(editedProductId, formData);

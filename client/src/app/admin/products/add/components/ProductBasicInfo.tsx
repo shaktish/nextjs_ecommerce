@@ -33,7 +33,6 @@ interface ProductBasicInfoProps {
   setRemovedVariants: Dispatch<SetStateAction<Record<string, Variant>>>;
   removedVariants: Record<string, Variant>;
   variantField: {
-    // fields: FieldArrayWithId<ProductFormType, "variants">[];
     appendVariant: UseFieldArrayAppend<ProductFormType>;
     removeVariant: UseFieldArrayRemove;
   };

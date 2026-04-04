@@ -32,11 +32,10 @@ function Sizes({
     control,
   } = useFormContext<ProductFormType>();
 
-  const variants =
-    useWatch({
-      control,
-      name: "variants",
-    }) || [];
+  const variants = useWatch({
+    control,
+    name: "variants",
+  }) as Variant[];
 
   const toggleSize = (sizeId: string) => {
     const variantIndex = variants.findIndex((v) => v.sizeId === sizeId);
@@ -52,7 +51,6 @@ function Sizes({
       removeVariant(variantIndex);
     } else {
       const cachedVariant = removedVariants[sizeId];
-
       if (cachedVariant) {
         // restore original variant (keeps DB id)
         appendVariant(cachedVariant);
@@ -64,6 +62,7 @@ function Sizes({
       } else {
         // new variant
         appendVariant({
+          id: null,
           sizeId,
           price: 0,
           stock: 0,

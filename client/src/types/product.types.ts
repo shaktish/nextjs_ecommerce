@@ -9,7 +9,7 @@ export interface Category {
 
 
 export type Variant = {
-    id?: string;
+    id?: string | null | undefined;
     sizeId: string;
     price: number;
     stock: number;

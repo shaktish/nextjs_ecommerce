@@ -46,7 +46,6 @@ const CouponListAdmin = () => {
   const deleteCouponHandler = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this coupon?")) {
       const response = await removeCoupon(id);
-      console.log(response, "response");
       if (response) {
         toast.success("Coupon deleted successfully");
         await getAllCoupon();

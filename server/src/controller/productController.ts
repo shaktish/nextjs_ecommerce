@@ -128,7 +128,11 @@ const getAllProductsAdmin = asyncHandler(async (req: AuthenticateRequest, res: R
     const products = await prisma.product.findMany({
         include: {
             images: true,
-            variants: true,
+            variants: {
+                include: {
+                    stock: true
+                }
+            },
         },
         orderBy: { updatedAt: 'desc' }
     });
@@ -174,7 +178,7 @@ const getProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) 
 
 // update a product (admin)
 const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
-
+    winstonLogger.info('update product controller init')
     if (req.body.variants) {
         try {
             req.body.variants = JSON.parse(req.body.variants);
@@ -189,6 +193,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
     if (req.body.deletedVariantIds) {
         try {
             req.body.deletedVariantIds = JSON.parse(req.body.deletedVariantIds);
+
         } catch (err) {
             winstonLogger.error('update product deletedVariantIds is invalid')
             return res.status(400).json({
@@ -216,7 +221,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
     }
     let uploadedImages: { url: string; publicId: string }[] = [];
     const { deletedImageIds = [], deletedVariantIds = [], variants = [] } = value;
-
+    winstonLogger.info('deletedVariantIds -====>', { deletedVariantIds })
     try {
         // upload product images if available 
         uploadedImages = await uploadImages(files);
@@ -261,7 +266,6 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                     where: { publicId: { in: deletedImageIds }, productId: id },
                 });
             }
-
             // Delete Removed variant
             await tx.productVariant.deleteMany({
                 where: { id: { in: deletedVariantIds }, productId: id }
@@ -386,7 +390,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         }
         return res.status(200).json({ message: 'Product updated successfully', data: updatedProduct });
     } catch (e: any) {
-        winstonLogger.error('Updaete product error', e)
+        winstonLogger.error('Update product error', e)
         // Rollback newly uploaded images
         if (uploadedImages.length > 0) {
             await deleteImages(uploadedImages.map(i => i.publicId));

@@ -12,7 +12,7 @@ router.get('/feature-products', AuthenticateJWT, getFeaturedProducts);
 router.get('/getAllProductsAdmin', AuthenticateJWT, isAdmin, getAllProductsAdmin);
 router.post('/', AuthenticateJWT, isAdmin, upload.array("images", 10), createProduct);
 router.get('/:id', AuthenticateJWT, getProduct);
-router.patch('/:id', upload.array("images", 10), parseFormData(["sizes", "colors", "deletedImageIds"]), AuthenticateJWT, updateProduct);
+router.patch('/:id', upload.array("images", 10), AuthenticateJWT, updateProduct);
 router.delete('/:id', AuthenticateJWT, isAdmin, deleteProduct);
 
 

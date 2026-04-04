@@ -8,7 +8,7 @@ type BuildFormDataParams = {
     isEditMode: boolean;
     existingImagesData: ProductImage[];
     existingPreviews: string[];
-    removedVariants: Record<string, Variant>;
+    removedVariants?: Record<string, Variant>;
 };
 
 export const buildSubmitFormData = ({
@@ -59,11 +59,14 @@ export const buildSubmitFormData = ({
                 deletedImages.map((item) => item.publicId).join(","),
             );
         }
+        if (removedVariants) {
+            formData.append(
+                "deletedVariantIds",
+                JSON.stringify(Object.values(removedVariants).map((item) => item.id)),
+            );
+        }
 
-        formData.append(
-            "deletedVariantIds",
-            JSON.stringify(Object.values(removedVariants).map((item) => item.id)),
-        );
+
     }
     return formData;
 };
