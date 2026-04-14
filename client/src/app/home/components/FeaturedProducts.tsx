@@ -15,7 +15,7 @@ const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
         <p className="text-center mb-8 text-gray-500">
           Designed to keep your satisfaction and warmth
         </p>
-        <div className="grid grids-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {featureProducts &&
             featureProducts.map((productItem) => {
               return (

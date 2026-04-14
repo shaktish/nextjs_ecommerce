@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
+import Link from "next/link";
 
 const menuItems = [
   {
@@ -74,9 +75,9 @@ const AdminSidebar = ({ isOpen, toggle }: SidebarProps) => {
       )}
     >
       <div className="flex h-16 items-center justify-between px-4">
-        <h1 className={cn("font-semibold", !isOpen && "hidden")}>
-          Admin panel
-        </h1>
+        <Link href="/admin" className={cn(!isOpen && "hidden")}>
+          <h1 className="font-semibold cursor-pointer">Admin Panel</h1>
+        </Link>
         <Button
           variant={"ghost"}
           size={"icon"}

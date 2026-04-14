@@ -379,7 +379,8 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                             url: img.url,
                             publicId: img.publicId
                         }))
-                    }
+                    },
+                    isFeatured: value.isFeatured !== undefined ? value.isFeatured : product.isFeatured,
                 }
             });
         });
@@ -417,16 +418,24 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
 const deleteProduct = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const id = req.params.id;
     const product = await prisma.product.findUnique({ where: { id }, include: { images: true } });
-
     if (!product) {
         return res.status(404).json({ message: 'Product not found' });
     }
 
-    if (product) {
-        // delete images from cloudinary 
+    await prisma.$transaction([
+        prisma.productVariant.deleteMany({ where: { productId: id } }),
+        prisma.productImage.deleteMany({ where: { productId: id } }),
+        prisma.product.delete({ where: { id } }),
+    ]);
+
+    try {
         await deleteImages(product.images.map(img => img.publicId));
+    } catch (error) {
+        winstonLogger.error('Cloudinary delete failed', {
+            productId: id,
+            images: product.images
+        });
     }
-    await prisma.product.delete({ where: { id } });
     return res.status(200).json({ message: 'Product deleted successfully' });
 })
 
