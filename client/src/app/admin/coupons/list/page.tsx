@@ -11,7 +11,7 @@ import {
 import { useCouponStore } from "@/store/useCouponStore";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 const CouponListAdmin = () => {

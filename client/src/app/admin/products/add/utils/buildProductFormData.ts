@@ -56,7 +56,7 @@ export const buildSubmitFormData = ({
             );
             formData.append(
                 "deletedImageIds",
-                deletedImages.map((item) => item.publicId).join(","),
+                JSON.stringify(deletedImages.map((item) => item.publicId)) //.join(","),
             );
         }
         if (removedVariants) {

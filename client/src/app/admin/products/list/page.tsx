@@ -21,6 +21,7 @@ const ProductListAdmin = () => {
     productLookup,
     categoriesLookup,
   } = useProductStore();
+
   useEffect(() => {
     if (!productLookup) {
       getLookup();
@@ -70,7 +71,7 @@ const ProductListAdmin = () => {
           </header>
           <div className="rounded-lg border bg-card">
             <div className="overflow-x-auto ">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {products?.map((item) => (
                   <div
                     key={item.id}
@@ -90,7 +91,7 @@ const ProductListAdmin = () => {
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
-                    <div className="w-full aspect-square bg-gray-100 rounded-md overflow-hidden">
+                    <div className="w-full aspect-[3/4] bg-gray-100 rounded-md overflow-hidden">
                       {item.images?.[0] ? (
                         <Image
                           src={item.images[0].url}

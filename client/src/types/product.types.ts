@@ -4,7 +4,9 @@ export interface Category {
     parentId: string | null,
     isLeaf: boolean,
     level: number,
-    isActive: boolean
+    isActive: boolean,
+    imageUrl?: string | null,
+    slug: string,
 }
 
 

@@ -83,9 +83,7 @@ function Sizes({
               key={sizeItem.id}
               size="sm"
               onClick={() => toggleSize(sizeItem.id)}
-              className={`border border-2 ${
-                isSelected ? "border-[#FB923C]" : ""
-              }`}
+              className={`border-2 ${isSelected ? "border-[#FB923C]" : ""}`}
             >
               {sizeItem.name}
             </Button>

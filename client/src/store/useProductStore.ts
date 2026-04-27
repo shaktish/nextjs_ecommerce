@@ -3,6 +3,18 @@ import axiosClient from '@/utils/axios';
 import axios, { AxiosError } from 'axios';
 import { create } from 'zustand'
 
+export interface ClientProductParams {
+    page?: number;
+    limit?: number;
+    category: string;
+    categories?: string;
+    brands?: string;
+    sizes?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    sortBy?: string;
+}
+
 export interface ProductImage {
     id: string,
     url: string,
@@ -39,8 +51,15 @@ export type Product = {
 
 type ProductStore = {
     featureProducts: Product[];
+    // get product by id for client side
+    product: Product | null;
+    // get list of products for client side with pagination and filters
     products: Product[] | null;
     productLookup: ProductLookup;
+    productParentCategories: Category[];
+    productCategories: {
+        [parentId: string]: Category[];
+    } | null;
     categoriesLookup: Category[];
     isLoading: boolean,
     error: {
@@ -51,19 +70,26 @@ type ProductStore = {
     getAllProductAdmin: () => Promise<void>;
     updateProduct: (id: string, product: FormData) => Promise<string | null>;
     removeProduct: (id: string) => Promise<string | null>;
-    getProduct: (id: string) => Promise<ProductApiResponse | null>;
+    getProduct: (id: string) => Promise<void | null>;
     getFeatureProducts: () => Promise<void>;
     getLookup: () => Promise<void>;
     getCategoriesLookup: () => Promise<void>;
+    getProductCategories: (parentId?: string) => Promise<void>;
+    getProductsForClient: (params: ClientProductParams) => Promise<void>;
+    clientTotalPages?: number;
 }
 
 export const useProductStore = create<ProductStore>((set, get) => ({
     products: [],
+    product: null,
     featureProducts: [],
+    productParentCategories: [],
+    productCategories: null,
     productLookup: null,
     categoriesLookup: [],
-    isLoading: false,
+    isLoading: true,
     error: null,
+    clientTotalPages: 0,
     addProduct: async (product: FormData) => {
         try {
             set({ isLoading: true, error: null });
@@ -93,10 +119,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     },
     getProduct: async (id: string) => {
         try {
-            set({ isLoading: true, error: null });
-            const response = await axiosClient.get<ProductApiResponse>(`/product/${id}`)
-            set({ isLoading: false, error: null });
-            return response?.data || null;
+            set({ isLoading: true, error: null, product: null });
+            const response = await axiosClient(`/product/${id}`)
+            set({ isLoading: false, error: null, product: response.data });
+            return response.data;
         } catch (e) {
             const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
             set({
@@ -217,7 +243,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     getCategoriesLookup: async () => {
         try {
             set({ isLoading: true, error: null });
-            const response = await axiosClient.get<Category[]>('/product/categories')
+            const response = await axiosClient.get<Category[]>('/product/lookup-categories')
             set({
                 isLoading: false,
                 categoriesLookup: response?.data
@@ -227,7 +253,57 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             set({
                 isLoading: false,
                 error: {
-                    message: axiosError.response?.data?.message || axiosError.message || "Failed to create the product",
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to getCategoriesLookup",
+                    details: axiosError.response?.data?.details
+                }
+            })
+        }
+    },
+    getProductCategories: async (parentId?: string) => {
+        try {
+            set({ isLoading: true, error: null });
+            const response = await axiosClient.get<Category[]>('/product/product-categories', { params: { parentId } });
+            if (parentId) {
+                set({
+                    isLoading: false,
+                    productCategories: {
+                        ...get().productCategories,
+                        [parentId]: response?.data || []
+                    }
+                });
+            } else {
+                set({
+                    isLoading: false,
+                    productParentCategories: response?.data || []
+                });
+            }
+
+        } catch (e) {
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
+            set({
+                isLoading: false,
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to getProductCategories",
+                    details: axiosError.response?.data?.details
+                }
+            })
+        }
+    },
+    getProductsForClient: async (params: { page?: number; limit?: number }) => {
+        try {
+            set({ isLoading: true, error: null });
+            const response = await axiosClient.get('/product/get-products', { params, withCredentials: true });
+            set({
+                isLoading: false,
+                products: response?.data?.data || [],
+                clientTotalPages: response?.data?.totalPages || 0,
+            });
+        } catch (e) {
+            const axiosError = e as AxiosError<{ message?: string, details?: string[] }>;
+            set({
+                isLoading: false,
+                error: {
+                    message: axiosError.response?.data?.message || axiosError.message || "Failed to get products for client",
                     details: axiosError.response?.data?.details
                 }
             })

@@ -25,8 +25,16 @@ const navItems = [
     to: "/home",
   },
   {
-    title: "Collections",
-    to: "/listing",
+    title: "All Collections",
+    to: "/collections",
+  },
+  {
+    title: "Mens Collections",
+    to: "/collections/men",
+  },
+  {
+    title: "Womens Collections",
+    to: "/collections/women",
   },
 ];
 
@@ -47,6 +55,14 @@ const Header = () => {
     setOpen(false);
     setMobileView("menu");
     router.push("/auth/login");
+  };
+
+  const isActive = (itemPath: string) => {
+    if (itemPath === "/collections") {
+      return pathname === "/collections"; // only exact
+    }
+
+    return pathname.startsWith(itemPath);
   };
 
   return (
@@ -70,7 +86,7 @@ const Header = () => {
                     href={item.to}
                     key={index}
                     className={`text-lg font-semibold hover:text-gray-500 text-black transition-colors duration-100  ${
-                      pathname.startsWith(item.to) ? "text-red-400" : ""
+                      isActive(item.to) ? "text-red-400" : ""
                     }`}
                   >
                     {item.title}
