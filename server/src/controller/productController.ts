@@ -1,12 +1,15 @@
 import { Response } from "express";
 import asyncHandler from "../utils/asyncHandler.ts";
 import { AuthenticateRequest } from "../middleware/authMiddleware.ts";
-import { createProductSchema, updateProductSchema } from "../validations/productValidation.ts";
+import { createProductSchema, productClientSchema, updateProductSchema } from "../validations/productValidation.ts";
 import winstonLogger from "../utils/winstonLogger.ts";
 import { prisma } from "../server.ts";
 import { deleteImages, uploadImages } from "../utils/uploadImages.ts";
 import { CreateVariantDTO } from "../types/productTypes.ts";
 import { generateSku } from "../utils/product.utils.ts";
+import { Prisma } from "../../generated/prisma/index";
+import { updateProductPriceRange } from "../utils/productUtils.ts";
+
 
 
 // create a product
@@ -63,7 +66,7 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
         const product = await prisma.$transaction(async (tx) => {
             // tx - transactionClient
 
-            return await tx.product.create({
+            const createdProduct = await tx.product.create({
                 data: {
                     name: value.name,
                     description: value.description,
@@ -94,6 +97,8 @@ const createProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                     }
                 }
             });
+            await updateProductPriceRange(createdProduct.id, tx);
+            return createdProduct;
 
         });
 
@@ -196,6 +201,18 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
 
         } catch (err) {
             winstonLogger.error('update product deletedVariantIds is invalid')
+            return res.status(400).json({
+                message: "Invalid JSON format for deletedVariantIds"
+            });
+        }
+    }
+
+    if (req.body.deletedImageIds) {
+        try {
+            req.body.deletedImageIds = JSON.parse(req.body.deletedImageIds);
+
+        } catch (err) {
+            winstonLogger.error('update product deletedImageIds is invalid')
             return res.status(400).json({
                 message: "Invalid JSON format for deletedVariantIds"
             });
@@ -323,7 +340,7 @@ const updateProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
                     await tx.productVariant.create({ data: v });
                 }
             }
-
+            await updateProductPriceRange(product.id, tx);
             // update the product 
             return await tx.product.update({
                 where: { id },
@@ -441,7 +458,155 @@ const deleteProduct = asyncHandler(async (req: AuthenticateRequest, res: Respons
 
 // fetch products with filter (client)
 
-export const getCategoriesLookup = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+const getProductsForClient = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    const { error, value } = productClientSchema.validate(req.query, { abortEarly: false });
+
+    if (error) {
+        winstonLogger.warn("Validation error", error.details);
+        return res.status(400).json({
+            message: "Validation failed",
+            details: error.details.map(d => d.message),
+        });
+    }
+
+
+    const { page, limit, minPrice, maxPrice, sortBy, category } = value;
+    const categories = value.categories
+        ? value.categories.split(",").filter(Boolean)
+        : [];
+
+    const parent = await prisma.category.findUnique({
+        where: { id: category },
+        select: { id: true },
+    });
+
+    const scopeCategories = await prisma.category.findMany({
+        where: {
+            OR: [
+                { id: { in: categories } },
+                { parentId: parent?.id },
+            ],
+        },
+        select: { id: true },
+    });
+
+    let finalCategoryIds: string[] = [];
+
+    if (categories.length) {
+        // user selected filters → map slugs to IDs
+        const selected = await prisma.category.findMany({
+            where: { id: { in: categories } },
+            select: { id: true, slug: true },
+        });
+
+        finalCategoryIds = selected.map(c => c.id);
+    } else {
+        // no filters → use full scope
+        finalCategoryIds = scopeCategories.map(c => c.id);
+    }
+
+    const sizes = value.sizes
+        ? value.sizes.split(",").filter(Boolean)
+        : [];
+
+    const brands = value.brands
+        ? value.brands.split(",").filter(Boolean)
+        : [];
+
+    const skip = (page - 1) * limit;
+
+    const filters: Prisma.ProductWhereInput[] = [];
+
+    if (finalCategoryIds.length) {
+        filters.push({ categoryId: { in: finalCategoryIds } });
+    }
+
+    if (brands.length) {
+        filters.push({ brandId: { in: brands } });
+    }
+
+    if (sizes.length || minPrice || maxPrice) {
+        filters.push({
+            variants: {
+                some: {
+                    ...(sizes.length && { sizeId: { in: sizes } }),
+                    isActive: true,
+                    price: {
+                        gte: minPrice,
+                        lte: maxPrice,
+                    },
+                },
+            },
+        });
+
+
+    }
+    const SORT_FIELD_MAP: Record<string, string> = {
+        price: "minPrice",
+        createdAt: "createdAt",
+        rating: "rating",
+    };
+
+    const where = filters.length ? { AND: filters } : {};
+    const [sortField, sortOrderRaw] = (sortBy || "createdAt-desc").split("-");
+    const sortOrder = sortOrderRaw === "desc" ? "desc" : "asc";
+
+    const sortByValue = SORT_FIELD_MAP[sortField] || "createdAt";
+
+    winstonLogger.info(sortField, 'sortField');
+    const [products, total] = await Promise.all([
+        prisma.product.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: sortField ? { [sortByValue]: sortOrder } : { updatedAt: "desc" },
+            select: {
+                id: true,
+                name: true,
+                brandId: true,
+                categoryId: true,
+                createdAt: true,
+                images: {
+                    select: {
+                        id: true,
+                        url: true,
+                    }
+                },
+                minPrice: true,
+                variants: {
+                    where: { isActive: true },
+                    select: {
+                        id: true,
+                        sizeId: true,
+                        price: true,
+                        sku: true,
+                        soldCount: true,
+
+                        stock: {
+                            select: {
+                                quantity: true,
+                            },
+                        },
+                    },
+                },
+            },
+        }),
+        prisma.product.count({ where })
+    ]);
+
+    res.status(200).json({
+        data: products,
+        totalProducts: total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+    });
+
+})
+
+
+
+const getCategoriesLookup = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const categories = await prisma.category.findMany({
         where: {
             isActive: true
@@ -460,7 +625,33 @@ export const getCategoriesLookup = asyncHandler(async (req: AuthenticateRequest,
     return res.status(200).json(categories);
 })
 
-export const getProductLookups = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+
+const getProductCategories = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    const parentId = req.query.parentId ? req.query.parentId as string : null;
+
+    const categories = await prisma.category.findMany({
+        where: {
+            isActive: true,
+            parentId: parentId,
+        },
+        select: {
+            id: true,
+            name: true,
+            parentId: true,
+            isLeaf: true,
+            level: true,
+            isActive: true,
+            imageUrl: true,
+            slug: true,
+        },
+        orderBy: { name: 'asc' }
+    })
+
+    return res.status(200).json(categories);
+
+})
+
+const getProductLookups = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const [brands, gender, size] = await Promise.all([
         prisma.brand.findMany({
             where: { isActive: true },
@@ -506,5 +697,9 @@ export {
     getProduct,
     updateProduct,
     deleteProduct,
-    getFeaturedProducts
+    getFeaturedProducts,
+    getProductLookups,
+    getProductCategories,
+    getCategoriesLookup,
+    getProductsForClient
 }

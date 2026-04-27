@@ -1,8 +1,5 @@
 import Joi from "joi";
 
-const stockSchema = Joi.object({
-    quantity: Joi.number().integer().min(0).required()
-});
 
 const variantSchema = Joi.object({
     id: Joi.string().optional(),
@@ -46,3 +43,25 @@ export const updateProductSchema = Joi.object({
     deletedVariantIds: Joi.array().items(Joi.string().trim()).optional(),
     isFeatured: Joi.boolean().optional(),
 })
+
+export const productClientSchema = Joi.object({
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).max(50).default(10),
+    category: Joi.string().required(),
+    categories: Joi.string().optional(),
+    brands: Joi.string().optional(),
+    sizes: Joi.string().optional(),
+    minPrice: Joi.number().min(0)
+        .default(0),
+    maxPrice: Joi.number().min(0).default(10000)
+        .greater(Joi.ref("minPrice")),
+    sortBy: Joi.string()
+        .valid(
+            "createdAt-desc",
+            "createdAt-asc",
+            "price-asc",
+            "price-desc"
+        )
+        .optional(),
+
+});

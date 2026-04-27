@@ -116,8 +116,11 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([slug, parentId])
-  @@index([parentId])
+  imageUrl  String?
+  imagePublicId String?
+
+  @@unique([slug])
+  @@index([slug])
 }
 
 model Product {
@@ -136,6 +139,8 @@ model Product {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isFeatured Boolean @default(false)
+  minPrice Int @default(0)
+  maxPrice Int @default(0)
   
   @@unique([name, brandId, categoryId])
   @@index([genderId])

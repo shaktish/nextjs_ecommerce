@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "public"."Product" ADD COLUMN     "maxPrice" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "minPrice" INTEGER NOT NULL DEFAULT 0;
