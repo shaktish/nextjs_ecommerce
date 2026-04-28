@@ -28,6 +28,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   refreshToken String? @unique
+  cart Cart?
 }
 
 model ProductImage {
@@ -79,6 +80,39 @@ model Stock {
   updatedAt DateTime @updatedAt
 }
 
+
+
+model CartItem {
+  id         String @id @default(cuid())
+
+  cartId     String
+  cart       Cart   @relation(fields: [cartId], references: [id])
+
+  variantId  String
+  variant    ProductVariant @relation(fields: [variantId], references: [id])
+
+  quantity   Int
+
+  // snapshot (important)
+  price      Int   // price at time of adding
+  updatedAt  DateTime @updatedAt
+  @@unique([cartId, variantId])
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items     CartItem[]
+  user      User @relation(fields: [userId], references: [id])
+
+  @@unique([userId])
+  @@index([userId])
+
+}
+
 model ProductVariant {
   id String @id @default(cuid())
 
@@ -94,6 +128,8 @@ model ProductVariant {
 
   stock     Stock?
   soldCount Int @default(0)  
+
+  cartItems CartItem[] 
 
   @@unique([productId, sizeId])
 }

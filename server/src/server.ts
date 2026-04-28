@@ -16,6 +16,7 @@ import corsOptions from './config/cors.ts';
 import { rateLimiter } from './config/rateLimiter.ts';
 import CouponRoutes from "./routes/couponRoutes.ts";
 import FeatureBannerRoutes from './routes/featureBannerRoutes.ts'
+import CartRoutes from './routes/cartRoutes.ts';
 
 export const prisma = new PrismaClient();
 const app: Express = express();
@@ -30,6 +31,7 @@ app.use("/api/auth", AuthRoutes)
 app.use("/api/product", ProductRoutes);
 app.use('/api/coupon', CouponRoutes);
 app.use('/api/feature-banner', FeatureBannerRoutes);
+app.use('/api/cart', CartRoutes);
 
 app.use(globalErrorHandler);
 
