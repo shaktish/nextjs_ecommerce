@@ -22,13 +22,16 @@ import { SlidersHorizontal } from "lucide-react";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter, usePathname } from "next/navigation";
-import { FilterSection } from "./components/Filters";
-import { ProductGrid } from "./components/ProductGrid";
-import { Pagination } from "./components/Pagination";
-import { sortByOptions } from "./constants/constants";
-import { formatCategoryName } from "./utils/formatCategoryName";
-import { buildQueryParams, updatePageParam } from "./utils/queryParams";
-import { ProductSkeleton } from "./components/skeleton/ProductSkeleton";
+import { FilterSection } from "../../../modules/collections/components/Filters";
+import { ProductGrid } from "../../../modules/collections/components/ProductGrid";
+import { Pagination } from "../../../modules/collections/components/Pagination";
+import { sortByOptions } from "../../../modules/collections/constants/constants";
+import { formatCategoryName } from "../../../modules/collections/utils/formatCategoryName";
+import {
+  buildQueryParams,
+  updatePageParam,
+} from "../../../modules/collections/utils/queryParams";
+import { ProductSkeleton } from "../../../modules/collections/components/skeleton/ProductSkeleton";
 
 function CategoryListing() {
   const minPriceDefault = 0;

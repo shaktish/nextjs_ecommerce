@@ -1,11 +1,14 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/store/useProductStore";
+import { useRouter } from "next/navigation";
 
 interface FeaturedProductsProps {
   featureProducts: Product[];
 }
 
 const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
+  const router = useRouter();
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
@@ -35,7 +38,12 @@ const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
                       <h3 className="text-xl font-semibold mb-2">
                         {productItem.name}
                       </h3>
-                      <Button className="cursor-pointer mt-4 bg-white text-black hover:bg-white">
+                      <Button
+                        className="cursor-pointer mt-4 bg-white text-black hover:bg-white"
+                        onClick={() =>
+                          router.push(`/collections/men/${productItem.id}`)
+                        }
+                      >
                         Shop Now
                       </Button>
                     </div>

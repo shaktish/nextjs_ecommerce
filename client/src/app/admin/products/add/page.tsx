@@ -6,16 +6,16 @@ import { useProductStore } from "@/store/useProductStore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
-import useImageState from "./hooks/useImageState";
+import useImageState from "../../../../modules/admin/products/add/hooks/useImageState";
 import { useForm, useWatch } from "react-hook-form";
 import { ProductFormType, productSchema } from "@/schemas/productSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { buildSubmitFormData } from "./utils/buildProductFormData";
-import { mapProductToForm } from "./utils/utils";
+import { buildSubmitFormData } from "../../../../modules/admin/products/add/utils/buildProductFormData";
+import { mapProductToForm } from "../../../../modules/admin/products/add/utils/utils";
 import { Variant } from "@/types/product.types";
-import ImageUpload from "./components/ImageUpload";
-import Variants from "./components/Variants";
-import ProductBasicInfo from "./components/ProductBasicInfo";
+import ImageUpload from "../../../../modules/admin/products/add/components/ImageUpload";
+import Variants from "../../../../modules/admin/products/add/components/Variants";
+import ProductBasicInfo from "../../../../modules/admin/products/add/components/ProductBasicInfo";
 
 const AddProductAdmin = () => {
   const searchParams = useSearchParams();

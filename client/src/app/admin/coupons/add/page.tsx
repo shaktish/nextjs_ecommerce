@@ -1,6 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { inputClass, labelClass } from "../../products/add/utils/className";
+import {
+  inputClass,
+  labelClass,
+} from "../../../../modules/admin/products/add/utils/className";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -68,7 +71,7 @@ const AddCouponAdmin = () => {
   const submitButton = isEditMode ? "Update Coupon" : "Create Coupon";
 
   const handleInputChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormState({
       ...formState,
@@ -106,7 +109,7 @@ const AddCouponAdmin = () => {
 
     if (response) {
       toast.success(
-        `Coupon ${isEditMode ? "Updated" : "Created"} successfully`
+        `Coupon ${isEditMode ? "Updated" : "Created"} successfully`,
       );
       router.push("/admin/coupons/list");
     }
