@@ -4,6 +4,17 @@ import { prisma } from "../server";
 import winstonLogger from "../utils/winstonLogger";
 import { AuthenticateRequest } from "../middleware/authMiddleware";
 
+const mapCartItem = (item: any) => ({
+    id: item.id,
+    quantity: item.quantity,
+    price: item.price,
+    name: item.variant.product.name,
+    image: item.variant.product.images[0]?.url,
+    size: item.variant.size.name,
+    variantId: item.variant.id,
+    stock: item.variant.stock.quantity,
+});
+
 
 const addToCart = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const { variantId, quantity } = req.body;
@@ -12,7 +23,6 @@ const addToCart = asyncHandler(async (req: AuthenticateRequest, res: Response) =
     if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
     }
-
     try {
         const updatedCart = await prisma.$transaction(async (tx) => {
 
@@ -49,6 +59,8 @@ const addToCart = asyncHandler(async (req: AuthenticateRequest, res: Response) =
                 },
             });
 
+            let updatedItem;
+
             if (existingItem) {
                 const newQuantity = existingItem.quantity + quantity;
 
@@ -56,42 +68,75 @@ const addToCart = asyncHandler(async (req: AuthenticateRequest, res: Response) =
                     throw new Error("EXCEEDS_STOCK");
                 }
 
-                await tx.cartItem.update({
+                updatedItem = await tx.cartItem.update({
                     where: { id: existingItem.id },
                     data: { quantity: newQuantity },
+                    select: {
+                        id: true,
+                        quantity: true,
+                        price: true,
+                        variant: {
+                            select: {
+                                id: true,
+                                size: { select: { name: true } },
+                                stock: { select: { quantity: true } },
+                                product: {
+                                    select: {
+                                        name: true,
+                                        images: {
+                                            take: 1,
+                                            select: { url: true },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
                 });
             } else {
-                await tx.cartItem.create({
+                updatedItem = await tx.cartItem.create({
                     data: {
                         cartId: cart.id,
                         variantId,
                         quantity,
                         price: variant.price,
                     },
-                });
-            }
-
-            return await tx.cart.findUnique({
-                where: { id: cart.id },
-                include: {
-                    items: {
-                        include: {
-                            variant: {
-                                include: {
-                                    product: true,
-                                    stock: true,
-                                    size: true,
+                    select: {
+                        id: true,
+                        quantity: true,
+                        price: true,
+                        variant: {
+                            select: {
+                                id: true,
+                                size: { select: { name: true } },
+                                stock: { select: { quantity: true } },
+                                product: {
+                                    select: {
+                                        name: true,
+                                        images: {
+                                            take: 1,
+                                            select: { url: true },
+                                        },
+                                    },
                                 },
                             },
                         },
                     },
-                },
-            });
+                });
+            }
+            winstonLogger.info(updatedItem);
+            return {
+                items: updatedItem,
+                cartId: cart.id
+            }
         });
 
         return res.status(200).json({
             message: "Item added to cart",
-            cart: updatedCart,
+            data: {
+                items: mapCartItem(updatedCart.items),
+                cartId: updatedCart.cartId
+            },
         });
 
     } catch (e: any) {
@@ -131,10 +176,6 @@ const getCart = asyncHandler(async (req: AuthenticateRequest, res: Response) => 
                             size: {
                                 select: { name: true },
                             },
-                            price: true,
-                            stock: {
-                                select: { quantity: true },
-                            },
                             product: {
                                 select: {
                                     id: true,
@@ -145,14 +186,19 @@ const getCart = asyncHandler(async (req: AuthenticateRequest, res: Response) => 
                                     },
                                 },
                             },
+                            stock: {
+                                select: {
+                                    quantity: true
+                                }
+                            }
                         },
                     },
                 },
             },
         },
     });
-
-    res.status(200).json(cart);
+    const updatedItems = cart?.items.map(item => mapCartItem(item));
+    res.status(200).json({ data: { items: updatedItems, cartId: cart?.id } });
 })
 
 const deleteCartItem = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
@@ -200,7 +246,7 @@ const clearEntireCart = asyncHandler(async (req: AuthenticateRequest, res: Respo
 });
 
 const updateCartItemQuantity = asyncHandler(async (req: AuthenticateRequest, res: Response) => {
-    const { cartItemId, quantity } = req.body;
+    const { cartItemId, quantity, variantId } = req.body;
     const userId = req.user?.id;
 
     const qty = Number(quantity);
@@ -212,6 +258,7 @@ const updateCartItemQuantity = asyncHandler(async (req: AuthenticateRequest, res
     const cartItem = await prisma.cartItem.findFirst({
         where: {
             id: cartItemId,
+            variantId,
             cart: {
                 userId,
             },

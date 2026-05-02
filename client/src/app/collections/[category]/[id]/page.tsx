@@ -1,27 +1,35 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { useCartStore } from "@/store/useCartStore";
 
 import { useProductStore } from "@/store/useProductStore";
+import { Variant } from "@/types/product.types";
 import { formatPrice } from "@/utils/number";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 function ProductDetails({}) {
   const params = useParams();
   const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [price, setPrice] = useState<number>(0);
-  const [stock, setStock] = useState<number>(0);
+  const [selectedVariant, setSelectedVariant] = useState<Variant>();
   const productId = params.id as string;
   const { isLoading, getProduct, product, productLookup, getLookup } =
     useProductStore();
+  const { addToCart, isLoading: cartLoader, error: cartError } = useCartStore();
 
   useEffect(() => {
     getLookup();
   }, []);
 
   useEffect(() => {
-    console.log("Fetching product details for id:", productId);
+    if (cartError) {
+      toast.error(cartError);
+    }
+  }, [cartError]);
+
+  useEffect(() => {
     getProduct(productId);
   }, [getProduct, productId]);
 
@@ -30,25 +38,33 @@ function ProductDetails({}) {
 
     const firstAvailable =
       product.variants.find((v) => v.stock > 0) || product.variants[0];
-
-    setSelectedSize(firstAvailable.sizeId);
-    setPrice(firstAvailable.price);
-    setStock(firstAvailable.stock || 0);
+    setSelectedVariant(firstAvailable);
   }, [product]);
 
-  const handleSize = (sizeId: string, price: number, stock: number) => {
+  const handleSize = (variant: Variant) => {
     setQuantity(1);
-    setSelectedSize(sizeId);
-    setPrice(price);
-    setStock(stock || 0);
+    setSelectedVariant(variant);
   };
 
   const quantityHandler = (value: number, type: string) => {
     if (quantity + value < 1) return;
     if (value === -1 && type === "decrement") {
       setQuantity((prev) => prev - 1);
-    } else if (value === 1 && type === "increment" && quantity < stock) {
+    } else if (
+      selectedVariant &&
+      value === 1 &&
+      type === "increment" &&
+      quantity < selectedVariant.stock
+    ) {
       setQuantity((prev) => prev + 1);
+    }
+  };
+
+  const addToCartHandler = async (variantId: string, quantity: number) => {
+    const result = await addToCart({ variantId, quantity });
+
+    if (result) {
+      toast.success("Product added to cart");
     }
   };
 
@@ -71,7 +87,7 @@ function ProductDetails({}) {
           <div className="flex-1 grid grid-cols-2 gap-2">
             {product?.images?.map((image) => (
               <div
-                className="aspect-square overflow-hidden rounded-lg"
+                className="aspect-[3/4] overflow-hidden rounded-lg"
                 key={image.id}
               >
                 <img
@@ -83,12 +99,14 @@ function ProductDetails({}) {
             ))}
           </div>
 
-          {/* Right: Product Info */}
           <div className="flex-1">
             <h1 className="text-3xl font-bold mb-4">{product?.name}</h1>
             <p className="text-lg text-gray-700 mb-6">{product?.description}</p>
             <p className="mb-4">
-              <strong className="text-xl">{formatPrice(price)} </strong> MRP
+              <strong className="text-xl">
+                {selectedVariant?.price && formatPrice(selectedVariant?.price)}
+              </strong>{" "}
+              MRP
             </p>
             <div className="flex flex-wrap gap-4 mb-4">
               {product?.variants.map((variant) => {
@@ -102,16 +120,9 @@ function ProductDetails({}) {
                       variant={"outline"}
                       key={variant.sizeId}
                       size="sm"
-                      onClick={() =>
-                        handleSize(
-                          variant.sizeId,
-                          variant.price,
-                          variant.stock || 0,
-                        )
-                      }
-                      // className={`border-2 ${selectedSize === variant.sizeId ? "border-[#FB923C]" : ""}`}
+                      onClick={() => handleSize(variant)}
                       className={`border-2 text-black ${
-                        selectedSize === variant.sizeId
+                        selectedVariant?.sizeId === variant.sizeId
                           ? "border-orange-400 bg-orange-50"
                           : "border-gray-200"
                       }`}
@@ -123,31 +134,45 @@ function ProductDetails({}) {
               })}
             </div>
             <p className="text-sm text-gray-500">
-              {stock > 0 ? `${stock} items left` : "Out of stock"}
+              {selectedVariant &&
+                selectedVariant?.stock <= 3 &&
+                `${selectedVariant?.stock} item left`}
+              {selectedVariant &&
+                selectedVariant?.stock === 0 &&
+                "Out of stock"}
             </p>
-            <div>
-              <p>Quantity</p>
-              <div className="flex gap-5 mt-2 items-center">
-                <Button
-                  variant={"outline"}
-                  onClick={() => quantityHandler(-1, "decrement")}
-                >
-                  -
-                </Button>
-                <p>{quantity}</p>
-                <Button
-                  variant={"outline"}
-                  onClick={() => quantityHandler(1, "increment")}
-                >
-                  +
-                </Button>
+            {selectedVariant && selectedVariant?.stock > 0 && (
+              <div>
+                <p>Quantity</p>
+                <div className="flex gap-5 mt-2 items-center">
+                  <Button
+                    variant={"outline"}
+                    onClick={() => quantityHandler(-1, "decrement")}
+                  >
+                    -
+                  </Button>
+                  <p>{quantity}</p>
+                  <Button
+                    variant={"outline"}
+                    onClick={() => quantityHandler(1, "increment")}
+                  >
+                    +
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
+
             <Button
-              disabled={stock === 0}
+              disabled={selectedVariant?.stock === 0 || cartLoader}
               className="bg-[#ff6568] hover:bg-[#000000] cursor-pointer text-white px-6 py-3 rounded-lg mt-6 lg:width-auto"
+              onClick={() =>
+                addToCartHandler(
+                  (selectedVariant && selectedVariant?.id) || "",
+                  quantity,
+                )
+              }
             >
-              Add to cart
+              {cartLoader ? <Spinner /> : "Add to cart"}
             </Button>
           </div>
         </div>

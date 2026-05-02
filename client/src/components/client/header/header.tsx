@@ -16,8 +16,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "../../ui/dropdown-menu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MobileNav from "./components/mobileNav";
+import { useCartStore } from "@/store/useCartStore";
 
 const navItems = [
   {
@@ -43,6 +44,7 @@ const Header = () => {
   const { logout } = useAuthStore();
   const pathname = usePathname();
   const [mobileView, setMobileView] = useState<"menu" | "account">("menu");
+  const { getCartItems, items } = useCartStore();
 
   const router = useRouter();
 
@@ -65,6 +67,10 @@ const Header = () => {
     return pathname.startsWith(itemPath);
   };
 
+  useEffect(() => {
+    getCartItems();
+  }, []);
+  console.log(items, "items");
   return (
     <header className="sticky top-0 z-50 shadow-sm bg-white">
       <div className="container mx-auto px-4">
@@ -102,7 +108,7 @@ const Header = () => {
             >
               <ShoppingCart />
               <span className="absolute -top-1 -right-1 h-4 w-4 bg-black text-white  text-xs rounded-full flex items-center justify-center">
-                0
+                {items?.length}
               </span>
             </div>
 
