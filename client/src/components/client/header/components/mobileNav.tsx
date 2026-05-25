@@ -13,6 +13,7 @@ import { CornerDownLeft, Menu, ShoppingBag, User } from "lucide-react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ThemeToggle from "./ThemeToggle";
 
 interface MobileNavProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -105,6 +106,7 @@ function MobileNav({
                 <ShoppingBag className="mr-3 h-4 w-4" />
                 Cart
               </Button>
+              <ThemeToggle isMobile={true} />
             </div>
           </div>
         );

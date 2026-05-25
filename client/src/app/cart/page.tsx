@@ -56,7 +56,7 @@ function Cart() {
     }
   };
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <div className="container max-w-5xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-semibold mb-6">Your Cart</h1>
 

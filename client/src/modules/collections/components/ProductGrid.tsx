@@ -26,7 +26,7 @@ export function ProductGrid({ products, productLookup }: ProductGridProps) {
                 />
                 <div className="absolute inset-0 bg-black/20 bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <Button
-                    className="bg-white text-black hover:bg-gray-100 cursor-pointer"
+                    className="bg-foreground text-background hover:bg-background hover:text-foreground cursor-pointer"
                     onClick={() =>
                       router.push(`/collections/men/${product.id}`)
                     }

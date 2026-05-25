@@ -19,6 +19,7 @@ import {
 import { useEffect, useState } from "react";
 import MobileNav from "./components/mobileNav";
 import { useCartStore } from "@/store/useCartStore";
+import ThemeToggle from "./components/ThemeToggle";
 
 const navItems = [
   {
@@ -72,7 +73,7 @@ const Header = () => {
   }, []);
   console.log(items, "items");
   return (
-    <header className="sticky top-0 z-50 shadow-sm bg-white">
+    <header className="sticky top-0 z-50 shadow-sm bg-background">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link href={"/home"}>
@@ -91,7 +92,7 @@ const Header = () => {
                   <Link
                     href={item.to}
                     key={index}
-                    className={`text-lg font-semibold hover:text-gray-500 text-black transition-colors duration-100  ${
+                    className={`text-lg font-semibold hover:text-gray-500 transition-colors duration-100  ${
                       isActive(item.to) ? "text-red-400" : ""
                     }`}
                   >
@@ -107,7 +108,7 @@ const Header = () => {
               onClick={() => router.push("/cart")}
             >
               <ShoppingCart />
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-black text-white  text-xs rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
                 {items?.length}
               </span>
             </div>
@@ -128,6 +129,7 @@ const Header = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <ThemeToggle />
           </div>
           <MobileNav
             mobileView={mobileView}

@@ -11,7 +11,7 @@ function CommonLayout({ children }: { children: React.ReactNode }) {
     pathName.startsWith(currentPath),
   );
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {showClientHeader && <Header />}
       <main>{children}</main>
     </div>

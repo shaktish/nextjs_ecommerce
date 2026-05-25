@@ -70,7 +70,7 @@ function ProductDetails({}) {
 
   if (isLoading || !product) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold mb-4">Loading...</h1>
@@ -80,7 +80,7 @@ function ProductDetails({}) {
     );
   }
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left: Images */}

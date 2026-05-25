@@ -15,7 +15,7 @@ const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
         <h2 className="text-center text-3xl font-semibold mb-2">
           New Arrivals
         </h2>
-        <p className="text-center mb-8 text-gray-500">
+        <p className="text-center mb-8 text-muted-foreground">
           Designed to keep your satisfaction and warmth
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
