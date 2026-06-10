@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 
-export default function ThemeToggle(isMobile: { isMobile?: boolean }) {
+interface ThemeToggleProps {
+  isMobile?: boolean;
+}
+
+function ThemeToggle({ isMobile }: ThemeToggleProps) {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -20,14 +24,16 @@ export default function ThemeToggle(isMobile: { isMobile?: boolean }) {
     document.documentElement.classList.toggle("dark", newDark);
     localStorage.setItem("theme", newDark ? "dark" : "light");
   };
-
+  console.log(isMobile, "isMobile");
   return (
     <button
       onClick={toggleTheme}
-      className={`cursor-pointer ${isMobile.isMobile ? "w-full justify-start" : ""}`}
+      className={`cursor-pointer  flex items-center gap-1 ${isMobile ? "w-full" : ""}`}
     >
-      Switch to {dark ? "Light" : "Dark"} Mode
       {dark ? <Sun size={20} /> : <Moon size={20} />}
+      {isMobile ? `Switch to ${dark ? "Light" : "Dark"} Mode` : null}
     </button>
   );
 }
+
+export default ThemeToggle;

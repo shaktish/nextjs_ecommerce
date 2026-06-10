@@ -129,7 +129,7 @@ const Header = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <ThemeToggle />
+            <ThemeToggle isMobile={false} />
           </div>
           <MobileNav
             mobileView={mobileView}
