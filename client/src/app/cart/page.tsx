@@ -5,7 +5,6 @@ import { formatPrice } from "@/utils/number";
 import { useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
-import { Car } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 function Cart() {
@@ -42,8 +41,7 @@ function Cart() {
       variantId: item.variantId,
       quantity: updatedQuantity,
     });
-    // getCartItems();
-    console.log(result, "result");
+
     if (!result.success) {
       toast.error(result.message || "Stock limit reached");
     }
@@ -60,7 +58,7 @@ function Cart() {
       <div className="container max-w-5xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-semibold mb-6">Your Cart</h1>
 
-        {items.length === 0 ? (
+        {items?.length === 0 ? (
           <p className="text-gray-600">
             There is nothing in your cart. Let's add some items..
           </p>

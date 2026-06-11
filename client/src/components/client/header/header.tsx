@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import MobileNav from "./components/mobileNav";
 import { useCartStore } from "@/store/useCartStore";
 import ThemeToggle from "./components/ThemeToggle";
+import UserButton from "./components/user";
 
 const navItems = [
   {
@@ -42,7 +43,7 @@ const navItems = [
 
 const Header = () => {
   const [open, setOpen] = useState(false);
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
   const pathname = usePathname();
   const [mobileView, setMobileView] = useState<"menu" | "account">("menu");
   const { getCartItems, items } = useCartStore();
@@ -69,9 +70,11 @@ const Header = () => {
   };
 
   useEffect(() => {
-    getCartItems();
+    if (user) {
+      getCartItems();
+    }
   }, []);
-  console.log(items, "items");
+
   return (
     <header className="sticky top-0 z-50 shadow-sm bg-background">
       <div className="container mx-auto px-4">
@@ -80,7 +83,8 @@ const Header = () => {
             <Image
               src={logo}
               alt={"SA Shopping"}
-              style={{ width: "auto", height: "100px" }}
+              width={100}
+              height={100}
               className="cursor-pointer"
               onClick={() => router.push("/")}
             />
@@ -102,35 +106,49 @@ const Header = () => {
               })}
             </nav>
           </div>
-          <div className="hidden lg:flex items-center space-x-4">
-            <div
-              className="relative cursor-pointer"
-              onClick={() => router.push("/cart")}
-            >
-              <ShoppingCart />
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
-                {items?.length}
-              </span>
-            </div>
+          {
+            <>
+              <div className="hidden lg:flex items-center space-x-4">
+                {user && (
+                  <>
+                    <div
+                      className="relative cursor-pointer"
+                      onClick={() => router.push("/cart")}
+                    >
+                      <ShoppingCart />
+                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
+                        {items?.length}
+                      </span>
+                    </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost">
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost">
+                          <User className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => router.push("/account")}>
-                  Your Account
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={logoutHandler}>
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <ThemeToggle isMobile={false} />
-          </div>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => router.push("/account")}
+                        >
+                          Your Account
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={logoutHandler}>
+                          Logout
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                )}
+                {!user && <UserButton />}
+                <div>
+                  <ThemeToggle isMobile={false} />
+                </div>
+              </div>
+            </>
+          }
+
           <MobileNav
             mobileView={mobileView}
             navItems={navItems}
@@ -139,6 +157,7 @@ const Header = () => {
             setMobileView={setMobileView}
             setOpen={setOpen}
             logoutHandler={logoutHandler}
+            isLoggedIn={user?.id ? true : false}
           />
         </div>
       </div>

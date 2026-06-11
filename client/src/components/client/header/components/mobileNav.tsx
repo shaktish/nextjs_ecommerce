@@ -14,6 +14,7 @@ import { CornerDownLeft, Menu, ShoppingBag, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
+import UserButton from "./user";
 
 interface MobileNavProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -23,6 +24,7 @@ interface MobileNavProps {
   onLinkClickHandler: () => void;
   logoutHandler: () => void;
   navItems: { title: string; to: string }[];
+  isLoggedIn: boolean;
 }
 
 function MobileNav({
@@ -33,6 +35,7 @@ function MobileNav({
   onLinkClickHandler,
   logoutHandler,
   navItems,
+  isLoggedIn,
 }: MobileNavProps) {
   const router = useRouter();
   const handleOpenChange = (value: boolean) => {
@@ -89,23 +92,28 @@ function MobileNav({
               })}
             </div>
             <div className="space-y-4 p-2">
-              <Button
-                className="w-full justify-start"
-                onClick={() => setMobileView("account")}
-              >
-                <User className="mr-3 h-4 w-4" />
-                Account
-              </Button>
-              <Button
-                className="w-full justify-start"
-                onClick={() => {
-                  onLinkClickHandler();
-                  router.push("/cart");
-                }}
-              >
-                <ShoppingBag className="mr-3 h-4 w-4" />
-                Cart
-              </Button>
+              {isLoggedIn && (
+                <>
+                  <Button
+                    className="w-full justify-start"
+                    onClick={() => setMobileView("account")}
+                  >
+                    <User className="mr-3 h-4 w-4" />
+                    Account
+                  </Button>
+                  <Button
+                    className="w-full justify-start"
+                    onClick={() => {
+                      onLinkClickHandler();
+                      router.push("/cart");
+                    }}
+                  >
+                    <ShoppingBag className="mr-3 h-4 w-4" />
+                    Cart
+                  </Button>
+                </>
+              )}
+              {!isLoggedIn && <UserButton />}
               <ThemeToggle isMobile={true} />
             </div>
           </div>

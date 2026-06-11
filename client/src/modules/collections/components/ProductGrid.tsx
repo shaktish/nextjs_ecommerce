@@ -2,11 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Product, ProductLookup } from "@/store/useProductStore";
+import { VariantForTable } from "@/types/product.types";
 import { formatPrice } from "@/utils/number";
 import { useRouter } from "next/navigation";
 
 interface ProductGridProps {
-  products: Product[] | null;
+  products: Product<VariantForTable>[] | null;
   productLookup: ProductLookup | null;
 }
 

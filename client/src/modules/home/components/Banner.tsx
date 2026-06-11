@@ -1,7 +1,9 @@
+"use client";
 import { FeatureBanner } from "@/store/useFeatureBannerStore";
 import useSlider from "../hooks/useSlider";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 
 interface BannerProps {
   banners: FeatureBanner[];
@@ -20,13 +22,15 @@ const Banner = ({ banners }: BannerProps) => {
         style={{ transform: `translateX(-${slide * 100}%)` }}
       >
         {banners?.length > 0 &&
-          banners?.map((item, index) => {
+          banners?.map((banner, index) => {
             return (
-              <div className="relative min-w-full h-full" key={item.id}>
-                <img
-                  src={item.url}
+              <div className="relative min-w-full h-full" key={banner.id}>
+                <Image
+                  src={banner.url}
                   alt={`Banner ${index}`}
                   className="absolute inset-0 w-full h-full object-cover"
+                  priority
+                  fill
                 />
               </div>
             );

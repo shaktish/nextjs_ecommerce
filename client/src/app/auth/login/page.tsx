@@ -36,10 +36,10 @@ function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login(formData);
-    if (success) {
+    const response = await login(formData);
+    if (response?.id) {
       toast.success("Login Successful");
-      if (user?.role === "Admin") {
+      if (response.role === "Admin") {
         router.push("/admin");
       } else {
         router.push("/home");
@@ -61,7 +61,7 @@ function LoginPage() {
         <div className="flex justify-center">
           <Image src={logo} alt={"SA Clothing Logo"} width={200} height={50} />
         </div>
-        <form className="sapce-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -90,7 +90,7 @@ function LoginPage() {
           </div>
           <Button
             type="submit"
-            className="w-full bg-black text-white hover:bg-black transition-colors"
+            className="w-full bg-black text-white hover:bg-black transition-colors mt-4"
             disabled={isLoading}
           >
             {isLoading ? "Loading..." : "Login"}

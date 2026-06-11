@@ -1,10 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/store/useProductStore";
+import { Variant } from "@/types/product.types";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 interface FeaturedProductsProps {
-  featureProducts: Product[];
+  featureProducts: Product<Variant>[];
 }
 
 const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
@@ -27,10 +29,12 @@ const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
                   className="relative group overflow-hidden"
                 >
                   <div className="aspect-[3/4]">
-                    <img
+                    <Image
                       src={productItem.images[0].url}
                       alt={productItem.name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      width={400}
+                      height={600}
                     />
                   </div>
                   <div className="absolute inset-0 bg-black bg-opacity-25 flex justify-center items-center opacity-0 group-hover:opacity-80 transition-opacity duration-300">

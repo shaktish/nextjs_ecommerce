@@ -1,6 +1,7 @@
 function Admin() {
   return (
     <div className="p-6">
+      <h1>Dashboard</h1>
       <div className="grid grid-cols-4 gap-4">
         <div className="p-4 bg-white rounded shadow">Total Products: 120</div>
         <div className="p-4 bg-white rounded shadow">Orders Today: 15</div>

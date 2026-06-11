@@ -1,30 +1,20 @@
-"use client";
-import {
-  FeatureBanner,
-  useFeatureBannerStore,
-} from "@/store/useFeatureBannerStore";
-import { useEffect, useState } from "react";
 import Banner from "../../modules/home/components/Banner";
-import { useProductStore } from "@/store/useProductStore";
 import FeaturedProducts from "../../modules/home/components/FeaturedProducts";
-function Home() {
-  const [banners, setBanners] = useState<FeatureBanner[]>([]);
-  const { isLoading, getAllFeatureBanners } = useFeatureBannerStore();
-  const { getFeatureProducts, featureProducts } = useProductStore();
+import { getFeaturedBanner } from "./api/getFeaturedBanner";
+import { getFeaturedProducts } from "./api/getFeaturedProducts";
 
-  useEffect(() => {
-    const fetchBanners = async () => {
-      const data = await getAllFeatureBanners();
-      setBanners(data);
-    };
-    getFeatureProducts();
-    fetchBanners();
-  }, []);
+async function Home() {
+  const [banners, featureProducts] = await Promise.all([
+    getFeaturedBanner(),
+    getFeaturedProducts(),
+  ]);
 
   return (
     <div className="min-h-screen bg-background">
-      <Banner banners={banners} />
-      <FeaturedProducts featureProducts={featureProducts} />
+      <div>Generated at: {new Date().toISOString()}</div>
+
+      <Banner banners={banners?.data || []} />
+      <FeaturedProducts featureProducts={featureProducts?.data || []} />
     </div>
   );
 }

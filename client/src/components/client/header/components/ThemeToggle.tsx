@@ -18,13 +18,10 @@ function ThemeToggle({ isMobile }: ThemeToggleProps) {
 
   const toggleTheme = () => {
     const newDark = !dark;
-
     setDark(newDark);
-
     document.documentElement.classList.toggle("dark", newDark);
     localStorage.setItem("theme", newDark ? "dark" : "light");
   };
-  console.log(isMobile, "isMobile");
   return (
     <button
       onClick={toggleTheme}

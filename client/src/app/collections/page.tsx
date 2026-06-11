@@ -1,18 +1,9 @@
-"use client";
-import { useProductStore } from "@/store/useProductStore";
-import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { getParentCategories } from "./api/get-product-parent-categories";
 
-function Collections() {
-  const { isLoading, getProductCategories, productParentCategories } =
-    useProductStore();
-
-  useEffect(() => {
-    if (!productParentCategories.length) {
-      getProductCategories();
-    }
-  }, [productParentCategories.length, getProductCategories]);
+async function Collections() {
+  const productParentCategories = await getParentCategories();
 
   const columns =
     productParentCategories.length <= 2
@@ -27,7 +18,7 @@ function Collections() {
       </div>
 
       <div className={`grid ${columns} gap-6`}>
-        {productParentCategories.map((category) => (
+        {productParentCategories.map((category: any) => (
           <Link
             key={category.id}
             href={`/collections/${category.slug}`}
