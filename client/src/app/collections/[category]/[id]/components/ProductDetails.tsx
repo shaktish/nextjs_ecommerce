@@ -13,7 +13,6 @@ function Details({ product, productLookup }: Details) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left: Images */}
         <div className="flex-1 grid grid-cols-2 gap-2">
           {product?.images?.map((image) => (
             <div
@@ -25,6 +24,7 @@ function Details({ product, productLookup }: Details) {
                 alt={product.name}
                 className="w-full h-full object-cover"
                 fill
+                sizes="(max-width: 1024px) 50vw, 25vw"
               />
             </div>
           ))}

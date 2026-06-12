@@ -16,6 +16,8 @@ async function getProductLookup() {
 }
 
 async function getProduct(id: string) {
+  //   await new Promise((r) => setTimeout(r, 5000));
+
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/api/product/${id}`,
     {

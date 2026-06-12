@@ -87,6 +87,7 @@ const Header = () => {
               height={100}
               className="cursor-pointer"
               onClick={() => router.push("/")}
+              priority
             />
           </Link>
           <div className="hidden lg:flex items-center space-x-8 flex-1 justify-center">

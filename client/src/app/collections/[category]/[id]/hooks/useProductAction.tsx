@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
 import { ProductLookup } from "@/store/useProductStore";
 import { Variant } from "@/types/product.types";
@@ -10,6 +11,7 @@ interface UseProductAction {
 }
 
 const useProductAction = ({ variants, productLookup }: UseProductAction) => {
+  const { user } = useAuthStore();
   const {
     addToCart,
     isLoading: cartLoader,
@@ -17,6 +19,8 @@ const useProductAction = ({ variants, productLookup }: UseProductAction) => {
     items: cartItems,
     updateCartItemQuantity,
   } = useCartStore();
+
+  const isUserLoggedIn: boolean = user?.id ? true : false;
 
   const defaultVariant = useMemo(
     () => variants.find((v) => v.stock > 0) || variants[0],
@@ -90,6 +94,7 @@ const useProductAction = ({ variants, productLookup }: UseProductAction) => {
     quantity,
     remainingStock,
     isCartMaxReached,
+    isUserLoggedIn,
   };
 };
 
