@@ -1,5 +1,3 @@
-import { formatPrice } from "@/utils/number";
-
 interface ProductInfo {
   name: string;
   description: string;

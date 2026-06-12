@@ -1,3 +1,14 @@
+type LookupItem = {
+  id: string;
+  name: string;
+};
+
+export type ProductLookup = {
+  brands: LookupItem[];
+  gender: LookupItem[];
+  size: LookupItem[];
+} | null;
+
 export interface Category {
   id: string;
   name: string;
@@ -7,6 +18,10 @@ export interface Category {
   isActive: boolean;
   imageUrl?: string | null;
   slug: string;
+}
+
+export interface ProductCategories {
+  [parentId: string]: Category[];
 }
 
 export interface Variant {

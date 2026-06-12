@@ -8,6 +8,7 @@ function UserLoginButton() {
     <>
       <div className="flex justify-between gap-2 items-center">
         <Button
+          aria-label="Login"
           variant={"outline"}
           onClick={() => router.push("/auth/login")}
           className="cursor-pointer"

@@ -1,7 +1,6 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
-import { ProductLookup } from "@/store/useProductStore";
-import { Variant } from "@/types/product.types";
+import { ProductLookup, Variant } from "@/types/product.types";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 

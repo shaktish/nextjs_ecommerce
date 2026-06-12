@@ -15,25 +15,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ClientProductParams, useProductStore } from "@/store/useProductStore";
+import { Product } from "@/store/useProductStore";
 import { useParams } from "next/navigation";
 
-import { SlidersHorizontal } from "lucide-react";
-import { useEffect } from "react";
+import { Loader2, SlidersHorizontal } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter, usePathname } from "next/navigation";
-import { FilterSection } from "../../../modules/collections/components/Filters";
-import { ProductGrid } from "../../../modules/collections/components/ProductGrid";
-import { Pagination } from "../../../modules/collections/components/Pagination";
-import { sortByOptions } from "../../../modules/collections/constants/constants";
-import { formatCategoryName } from "../../../modules/collections/utils/formatCategoryName";
 import {
   buildQueryParams,
   updatePageParam,
 } from "../../../modules/collections/utils/queryParams";
-import { ProductSkeleton } from "../../../modules/collections/components/skeleton/ProductSkeleton";
+import { FilterSection } from "@/modules/collections/components/Filters";
+import { Pagination } from "@/modules/collections/components/Pagination";
+import { ProductGrid } from "@/modules/collections/components/ProductGrid";
+import { formatCategoryName } from "@/modules/collections/utils/formatCategoryName";
+import { sortByOptions } from "@/modules/collections/constants/constants";
+import {
+  ProductCategories,
+  ProductLookup,
+  VariantForTable,
+} from "@/types/product.types";
+import { useTransition } from "react";
 
-function CategoryListing() {
+interface CategoryListing {
+  products: Product<VariantForTable>[];
+  productCategories: ProductCategories | null;
+  productLookup: ProductLookup;
+  totalPages: number;
+}
+
+function CategoryListing({
+  products,
+  productCategories,
+  productLookup,
+  totalPages,
+}: CategoryListing) {
+  const [isPending, startTransition] = useTransition();
+
   const minPriceDefault = 0;
   const maxPriceDefault = 10000;
   const searchParams = useSearchParams();
@@ -42,7 +60,7 @@ function CategoryListing() {
   const router = useRouter();
   // parent category
   const category = params.category as string;
-  // url params for filters
+  // // url params for filters
   const categoryParam = searchParams.get("categories") || "";
   const brandsParam = searchParams.get("brands") || "";
   const sizesParam = searchParams.get("sizes") || "";
@@ -50,89 +68,21 @@ function CategoryListing() {
   const minPriceParam = Number(searchParams.get("minPrice")) || minPriceDefault;
   const maxPriceParam = Number(searchParams.get("maxPrice")) || maxPriceDefault;
   const currentPageParam = Number(searchParams.get("page")) || 1;
-  const limitPageParam = Number(searchParams.get("limit")) || 10;
 
-  const {
-    isLoading,
-    productCategories,
-    getLookup,
-    productLookup,
-    getProductCategories,
-    getProductsForClient,
-    products,
-    clientTotalPages: totalPages,
-  } = useProductStore();
-
-  useEffect(() => {
-    const payload: ClientProductParams = {
-      category,
-      sortBy: sortByParam,
-      minPrice: minPriceParam,
-      maxPrice: maxPriceParam,
-    };
-
-    if (categoryParam.length) {
-      payload.categories = categoryParam;
-    }
-
-    if (brandsParam.length) {
-      payload.brands = brandsParam;
-    }
-
-    if (sizesParam.length) {
-      payload.sizes = sizesParam;
-    }
-
-    if (limitPageParam) {
-      payload.limit = limitPageParam;
-    }
-
-    if (currentPageParam) {
-      payload.page = currentPageParam;
-    }
-
-    getProductsForClient({
-      page: currentPageParam,
-      limit: limitPageParam,
-      ...payload,
+  const updateRoute = (params: URLSearchParams) => {
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`);
     });
-  }, [
-    categoryParam,
-    brandsParam,
-    sizesParam,
-    sortByParam,
-    category,
-    getProductsForClient,
-    minPriceParam,
-    maxPriceParam,
-    limitPageParam,
-    currentPageParam,
-  ]);
-
-  useEffect(() => {
-    if (!category) return;
-
-    const existing = productCategories?.[category];
-
-    if (!existing || !existing.length) {
-      getProductCategories(category);
-    }
-  }, [category, getProductCategories, productCategories]);
-
-  useEffect(() => {
-    if (!productLookup) {
-      getLookup();
-    }
-  }, [productLookup, getLookup]);
+  };
 
   const updateFilter = (key: string, value: string, isMulti = true) => {
     const params = buildQueryParams(searchParams, key, value, isMulti);
-    router.push(`${pathname}?${params.toString()}`);
+    updateRoute(params);
   };
 
   const nextPageHandler = () => {
     const params = updatePageParam(searchParams, currentPageParam + 1);
-    router.push(`${pathname}?${params.toString()}`);
+    updateRoute(params);
   };
 
   const updatePriceFilter = ([min, max]: number[]) => {
@@ -142,21 +92,26 @@ function CategoryListing() {
     if (min === currentMin && max === currentMax) return;
     params.set("minPrice", String(min));
     params.set("maxPrice", String(max));
-    router.replace(`${pathname}?${params.toString()}`);
+    updateRoute(params);
   };
 
   const prevPageHandler = () => {
     const params = updatePageParam(searchParams, currentPageParam - 1);
-    router.push(`${pathname}?${params.toString()}`);
+    updateRoute(params);
   };
 
   const goToPageHandler = (page: number) => {
     const params = updatePageParam(searchParams, page);
-    router.push(`${pathname}?${params.toString()}`);
+    updateRoute(params);
   };
 
   return (
     <div className="p-6">
+      {isPending && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      )}
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">
           {category && formatCategoryName(category as string)} Listing Page
@@ -204,7 +159,7 @@ function CategoryListing() {
                 value={sortByParam}
                 onValueChange={(value) => updateFilter("sortBy", value, false)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Sort products">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
 
@@ -235,17 +190,7 @@ function CategoryListing() {
               maxPriceDefault={maxPriceDefault}
             />
           </div>
-          <>
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <ProductSkeleton key={i} />
-                ))}
-              </div>
-            ) : (
-              <ProductGrid products={products} productLookup={productLookup} />
-            )}
-          </>
+          <ProductGrid products={products} productLookup={productLookup} />
         </div>
 
         <Pagination

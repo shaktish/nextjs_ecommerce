@@ -1,8 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { ProductLookup } from "@/store/useProductStore";
-import { Variant } from "@/types/product.types";
+import { ProductLookup, Variant } from "@/types/product.types";
 import { formatPrice } from "@/utils/number";
 
 import useProductAction from "../hooks/useProductAction";

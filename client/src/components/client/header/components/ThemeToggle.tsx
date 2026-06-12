@@ -24,6 +24,7 @@ function ThemeToggle({ isMobile }: ThemeToggleProps) {
   };
   return (
     <button
+      aria-label="toggle theme"
       onClick={toggleTheme}
       className={`cursor-pointer  flex items-center gap-1 ${isMobile ? "w-full" : ""}`}
     >

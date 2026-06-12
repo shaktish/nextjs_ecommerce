@@ -1,4 +1,10 @@
-import { Category, Variant, VariantForTable } from "@/types/product.types";
+import {
+  Category,
+  ProductCategories,
+  ProductLookup,
+  Variant,
+  VariantForTable,
+} from "@/types/product.types";
 import axiosClient from "@/utils/axios";
 import { AxiosError } from "axios";
 import { create } from "zustand";
@@ -20,17 +26,6 @@ export interface ProductImage {
   url: string;
   publicId: string;
 }
-
-type LookupItem = {
-  id: string;
-  name: string;
-};
-
-export type ProductLookup = {
-  brands: LookupItem[];
-  gender: LookupItem[];
-  size: LookupItem[];
-} | null;
 
 export interface Product<TVariant> {
   id: string;
@@ -58,9 +53,7 @@ type ProductStore = {
   products: Product<VariantForTable>[] | null;
   productLookup: ProductLookup;
   productParentCategories: Category[];
-  productCategories: {
-    [parentId: string]: Category[];
-  } | null;
+  productCategories: ProductCategories | null;
   categoriesLookup: Category[];
   isLoading: boolean;
   error: {

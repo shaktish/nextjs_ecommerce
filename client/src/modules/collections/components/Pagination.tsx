@@ -23,6 +23,7 @@ export function Pagination({
   return (
     <div className="mt-10 flex items-center justify-center gap-2">
       <Button
+        aria-label="previous page"
         variant={"outline"}
         size={"icon"}
         disabled={currentPage === 1}
@@ -32,6 +33,7 @@ export function Pagination({
       </Button>
       {pages.map((page) => (
         <Button
+          aria-label={page.toString()}
           key={page}
           variant={currentPage === page ? "default" : "outline"}
           size={"icon"}
@@ -42,6 +44,7 @@ export function Pagination({
         </Button>
       ))}
       <Button
+        aria-label="next page"
         variant={"outline"}
         size={"icon"}
         disabled={currentPage === totalPages}

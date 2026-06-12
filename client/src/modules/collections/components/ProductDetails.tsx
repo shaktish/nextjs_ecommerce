@@ -1,5 +1,5 @@
-import { Product, ProductLookup } from "@/store/useProductStore";
-import { Variant } from "@/types/product.types";
+import { Product } from "@/store/useProductStore";
+import { ProductLookup, Variant } from "@/types/product.types";
 import Image from "next/image";
 import ProductInfo from "./ProductInfo";
 import ProductActions from "./ProductAction";
