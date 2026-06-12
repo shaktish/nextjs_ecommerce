@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-function UserButton() {
+function UserLoginButton() {
   const router = useRouter();
   return (
     <>
@@ -19,4 +19,4 @@ function UserButton() {
   );
 }
 
-export default UserButton;
+export default UserLoginButton;

@@ -5,7 +5,7 @@ import {
   updateFeatureBanner,
 } from "../controller/featureBannerController";
 import { AuthenticateJWT } from "../middleware/authMiddleware";
-import { upload } from "../middleware/middlware";
+import { upload } from "../middleware/middleware";
 
 const router = express.Router();
 

@@ -12,7 +12,7 @@ import {
   updateProduct,
 } from "../controller/productController.ts";
 import { AuthenticateJWT, isAdmin } from "../middleware/authMiddleware.ts";
-import { upload } from "../middleware/middlware.ts";
+import { upload } from "../middleware/middleware.ts";
 
 const router = express.Router();
 router.get("/lookup", getProductLookups);
@@ -33,7 +33,7 @@ router.post(
   upload.array("images", 10),
   createProduct,
 );
-router.get("/:id", AuthenticateJWT, getProduct);
+router.get("/:id", getProduct);
 router.patch(
   "/:id",
   upload.array("images", 10),

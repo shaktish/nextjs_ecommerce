@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import MobileNav from "./components/mobileNav";
 import { useCartStore } from "@/store/useCartStore";
 import ThemeToggle from "./components/ThemeToggle";
-import UserButton from "./components/user";
+import UserLoginButton from "./components/UserLoginButton";
 
 const navItems = [
   {
@@ -36,14 +36,14 @@ const navItems = [
     to: "/collections/men",
   },
   {
-    title: "Womens Collections",
+    title: "Women Collections",
     to: "/collections/women",
   },
 ];
 
 const Header = () => {
   const [open, setOpen] = useState(false);
-  const { logout, user } = useAuthStore();
+  const { logout, user, isLoading: isAuthLoading } = useAuthStore();
   const pathname = usePathname();
   const [mobileView, setMobileView] = useState<"menu" | "account">("menu");
   const { getCartItems, items } = useCartStore();
@@ -73,7 +73,7 @@ const Header = () => {
     if (user) {
       getCartItems();
     }
-  }, []);
+  }, [user?.id]);
 
   return (
     <header className="sticky top-0 z-50 shadow-sm bg-background">
@@ -141,7 +141,7 @@ const Header = () => {
                     </DropdownMenu>
                   </>
                 )}
-                {!user && <UserButton />}
+                {!isAuthLoading && !user && <UserLoginButton />}
                 <div>
                   <ThemeToggle isMobile={false} />
                 </div>

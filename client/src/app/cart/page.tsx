@@ -22,8 +22,6 @@ function Cart() {
     getCartItems();
   }, []);
 
-  console.log(items, "items");
-
   const quantityHandler = async (
     value: number,
     type: string,

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getParentCategories } from "./api/get-product-parent-categories";
+import { getParentCategories } from "./api/getProductParentCategories";
 
 async function Collections() {
   const productParentCategories = await getParentCategories();

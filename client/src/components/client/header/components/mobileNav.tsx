@@ -14,7 +14,7 @@ import { CornerDownLeft, Menu, ShoppingBag, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
-import UserButton from "./user";
+import UserLoginButton from "./UserLoginButton";
 
 interface MobileNavProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -113,7 +113,7 @@ function MobileNav({
                   </Button>
                 </>
               )}
-              {!isLoggedIn && <UserButton />}
+              {!isLoggedIn && <UserLoginButton />}
               <ThemeToggle isMobile={true} />
             </div>
           </div>
