@@ -1,5 +1,3 @@
-// import { PrismaClient } from "@prisma/client";
-import { PrismaClient, Role } from "../generated/prisma/index";
 import { hashPassword } from "../src/utils/hashPassword";
 import {
   brands,
@@ -9,6 +7,7 @@ import {
   sizes,
 } from "../src/lookup/lookup";
 import { textToSlug } from "../src/utils/slugUtil";
+import { PrismaClient, Role } from "@prisma/client";
 
 const prisma = new PrismaClient();
 

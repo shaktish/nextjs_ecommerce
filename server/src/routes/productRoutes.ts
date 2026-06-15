@@ -12,9 +12,9 @@ import {
   getProductLookups,
   getProductsForClient,
   updateProduct,
-} from "../controller/productController.ts";
-import { AuthenticateJWT, isAdmin } from "../middleware/authMiddleware.ts";
-import { upload } from "../middleware/middleware.ts";
+} from "../controller/productController";
+import { AuthenticateJWT, isAdmin } from "../middleware/authMiddleware";
+import { upload } from "../middleware/middleware";
 
 const router = express.Router();
 router.get("/lookup", getProductLookups);

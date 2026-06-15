@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-import { CreateVariantDTO } from "../types/productTypes";
+import { Prisma } from "@prisma/client";
 
 export const updateProductPriceRange = async (
   productId: string,
-  tx = PrismaClient,
+  tx: Prisma.TransactionClient,
 ) => {
   const variants = await tx.productVariant.findMany({
     where: {
@@ -27,7 +26,7 @@ export const updateProductPriceRange = async (
     return;
   }
 
-  const prices = variants.map((v: CreateVariantDTO) => v.price);
+  const prices = variants.map((v: any) => v.price);
 
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);

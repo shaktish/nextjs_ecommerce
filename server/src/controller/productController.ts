@@ -1,22 +1,23 @@
 import { Response, Request } from "express";
-import asyncHandler from "../utils/asyncHandler.ts";
-import { AuthenticateRequest } from "../middleware/authMiddleware.ts";
+import asyncHandler from "../utils/asyncHandler";
+import { AuthenticateRequest } from "../middleware/authMiddleware";
 import {
   createProductSchema,
   productClientSchema,
   updateProductSchema,
-} from "../validations/productValidation.ts";
-import winstonLogger from "../utils/winstonLogger.ts";
-import { prisma } from "../server.ts";
-import { deleteImages, uploadImages } from "../utils/uploadImages.ts";
-import { CreateVariantDTO } from "../types/productTypes.ts";
-import { generateSku } from "../utils/product.utils.ts";
-import { Prisma } from "../../generated/prisma/index";
+} from "../validations/productValidation";
+import winstonLogger from "../utils/winstonLogger";
+import { prisma } from "../server";
+import { deleteImages, uploadImages } from "../utils/uploadImages";
+import { CreateVariantDTO } from "../types/productTypes";
+import { generateSku } from "../utils/product.utils";
+
 import {
   invalidateProductCache,
   updateProductPriceRange,
-} from "../utils/productUtils.ts";
-import { textToSlug } from "../utils/slugUtil.ts";
+} from "../utils/productUtils";
+import { textToSlug } from "../utils/slugUtil";
+import { Prisma } from "@prisma/client";
 
 // create a product
 const createProduct = asyncHandler(
