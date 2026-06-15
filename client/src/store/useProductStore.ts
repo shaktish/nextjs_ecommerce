@@ -30,6 +30,7 @@ export interface ProductImage {
 export interface Product<TVariant> {
   id: string;
   name: string;
+  slug: string;
   brandId: string;
   description: string;
   categoryId: string;
@@ -117,7 +118,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   getProduct: async (id: string) => {
     try {
       set({ isLoading: true, error: null, product: null });
-      const response = await axiosClient(`/product/${id}`);
+      const response = await axiosClient(`/product/admin/${id}`);
       set({ isLoading: false, error: null, product: response.data });
       return response.data;
     } catch (e) {

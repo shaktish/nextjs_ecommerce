@@ -42,7 +42,7 @@ function LoginPage() {
       if (response.role === "Admin") {
         router.push("/admin");
       } else {
-        router.push("/home");
+        router.push("/");
       }
     }
   };

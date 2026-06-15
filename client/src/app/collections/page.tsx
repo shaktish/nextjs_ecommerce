@@ -1,9 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getParentCategories } from "@/modules/collections/api/getProductParentCategories";
+import { getProductCategories } from "@/modules/collections/api/getProductCategories";
 
 async function Collections() {
-  const productParentCategories = await getParentCategories();
+  const productParentCategories = await getProductCategories();
 
   const columns =
     productParentCategories.length <= 2

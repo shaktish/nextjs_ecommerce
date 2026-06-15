@@ -18,6 +18,7 @@ export interface Category {
   isActive: boolean;
   imageUrl?: string | null;
   slug: string;
+  updatedAt: Date;
 }
 
 export interface ProductCategories {
@@ -62,3 +63,9 @@ export type ProductApiResponse = {
     stock: number;
   }[];
 };
+
+export interface ProductSlug {
+  slug: string;
+  categorySlug: string;
+  updatedAt: Date;
+}

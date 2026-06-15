@@ -1,6 +1,6 @@
 import CategoryListing from "./CategoryListing";
 import getProductList from "@/modules/collections/api/getProductList";
-import { getParentCategories } from "@/modules/collections/api/getProductParentCategories";
+import { getProductCategories } from "@/modules/collections/api/getProductCategories";
 import { getProductLookup } from "@/modules/collections/api/getProductLookup";
 
 interface PageProps {
@@ -49,7 +49,7 @@ async function ListingPage({ searchParams, params }: PageProps) {
 
   const [productLookup, productCategories, products] = await Promise.all([
     getProductLookup(),
-    getParentCategories(category),
+    getProductCategories(category),
     getProductList(queryParams),
   ]);
 

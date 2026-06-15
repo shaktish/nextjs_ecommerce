@@ -1,6 +1,6 @@
 export async function getFeaturedProducts() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/product/feature-products`,
+    `${process.env.API_URL}/api/product/feature-products`,
     {
       next: {
         revalidate: 300,

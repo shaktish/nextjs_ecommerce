@@ -8,6 +8,7 @@ import {
   products,
   sizes,
 } from "../src/lookup/lookup";
+import { textToSlug } from "../src/utils/slugUtil";
 
 const prisma = new PrismaClient();
 
@@ -134,6 +135,7 @@ const seedProducts = async () => {
       update: {},
       create: {
         name: product.name,
+        slug: textToSlug(product.name),
         description: product.description,
         brandId: product.brandId,
         categoryId: product.categoryId,

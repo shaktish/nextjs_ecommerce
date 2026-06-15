@@ -7,8 +7,10 @@ export async function POST(req: Request) {
     return Response.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { productId } = await req.json();
-  revalidateTag(`product-${productId}`, "max");
+  const data = await req.json();
+  const { productSlug } = data;
+  revalidateTag("products", "max");
+  revalidateTag(`product-${productSlug}`, "max");
   return Response.json({
     success: true,
   });

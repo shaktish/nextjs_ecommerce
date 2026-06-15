@@ -1,10 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Product, ProductLookup } from "@/store/useProductStore";
-import { VariantForTable } from "@/types/product.types";
+import { Product } from "@/store/useProductStore";
+import { ProductLookup, VariantForTable } from "@/types/product.types";
 import { formatPrice } from "@/utils/number";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface ProductGridProps {
   products: Product<VariantForTable>[] | null;
@@ -13,10 +13,12 @@ interface ProductGridProps {
 
 export function ProductGrid({ products, productLookup }: ProductGridProps) {
   const router = useRouter();
+  const pathname = usePathname();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {products &&
         products.map((product) => {
+          console.log(product, "pr");
           return (
             <div key={product.id} className="group">
               <div className="relative aspect-[3/4] mb-4 bg-gray-100 overflow-hidden">
@@ -28,9 +30,7 @@ export function ProductGrid({ products, productLookup }: ProductGridProps) {
                 <div className="absolute inset-0 bg-black/20 bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <Button
                     className="bg-foreground text-background hover:bg-background hover:text-foreground cursor-pointer"
-                    onClick={() =>
-                      router.push(`/collections/men/${product.id}`)
-                    }
+                    onClick={() => router.push(`${pathname}/${product.slug}`)}
                   >
                     Quick View
                   </Button>

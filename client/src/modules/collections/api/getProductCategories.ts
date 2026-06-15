@@ -1,4 +1,4 @@
-export async function getParentCategories(parentId?: string) {
+export async function getProductCategories(parentId?: string) {
   const queryParams = new URLSearchParams();
 
   if (parentId) {

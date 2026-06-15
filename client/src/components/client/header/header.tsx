@@ -25,7 +25,7 @@ import UserLoginButton from "./components/UserLoginButton";
 const navItems = [
   {
     title: "Home",
-    to: "/home",
+    to: "/",
   },
   {
     title: "All Collections",
@@ -62,8 +62,8 @@ const Header = () => {
   };
 
   const isActive = (itemPath: string) => {
-    if (itemPath === "/collections") {
-      return pathname === "/collections"; // only exact
+    if (itemPath === "/" || itemPath === "/collections") {
+      return pathname === itemPath;
     }
 
     return pathname.startsWith(itemPath);
@@ -79,7 +79,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 shadow-sm bg-background">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
-          <Link href={"/home"}>
+          <Link href={"/"}>
             <Image
               src={logo}
               alt={"SA Shopping"}

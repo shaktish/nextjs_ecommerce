@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Response, Request } from "express";
 import asyncHandler from "../utils/asyncHandler.ts";
 import { AuthenticateRequest } from "../middleware/authMiddleware.ts";
 import {
@@ -13,9 +13,10 @@ import { CreateVariantDTO } from "../types/productTypes.ts";
 import { generateSku } from "../utils/product.utils.ts";
 import { Prisma } from "../../generated/prisma/index";
 import {
-  invalidateCache,
+  invalidateProductCache,
   updateProductPriceRange,
 } from "../utils/productUtils.ts";
+import { textToSlug } from "../utils/slugUtil.ts";
 
 // create a product
 const createProduct = asyncHandler(
@@ -75,6 +76,7 @@ const createProduct = asyncHandler(
         const createdProduct = await tx.product.create({
           data: {
             name: value.name,
+            slug: textToSlug(value.name),
             description: value.description,
             brandId: value.brandId,
             categoryId: value.categoryId,
@@ -170,11 +172,40 @@ const getFeaturedProducts = asyncHandler(
 );
 
 // get a single product
-const getProduct = asyncHandler(
+
+const getProductByIdForAdmin = asyncHandler(
   async (req: AuthenticateRequest, res: Response) => {
     const id = req.params.id;
     const product = await prisma.product.findUnique({
       where: { id },
+      include: {
+        images: true,
+        variants: {
+          include: {
+            stock: true,
+          },
+        },
+      },
+    });
+    const formatted = {
+      ...product,
+      variants: product?.variants.map((v) => ({
+        ...v,
+        stock: v.stock?.quantity ?? 0,
+      })),
+    };
+    if (!product) {
+      return res.status(404).json({ message: "Product found" });
+    }
+    return res.status(200).json(formatted);
+  },
+);
+
+const getProduct = asyncHandler(
+  async (req: AuthenticateRequest, res: Response) => {
+    const slug = req.params.slug;
+    const product = await prisma.product.findUnique({
+      where: { slug },
       include: {
         images: true,
         variants: {
@@ -345,7 +376,7 @@ const updateProduct = asyncHandler(
           // Create new variants
           const newVariants = variants
             .filter((v: { id: string }) => !v.id)
-            .map((v) => {
+            .map((v: any) => {
               const size = sizeMap.get(v.sizeId);
               if (!size) throw new Error("INVALID_SIZE");
               return {
@@ -375,6 +406,7 @@ const updateProduct = asyncHandler(
           select: {
             id: true,
             name: true,
+            slug: true,
             description: true,
             brand: {
               select: {
@@ -437,8 +469,10 @@ const updateProduct = asyncHandler(
       if (deletedImageIds.length > 0) {
         await deleteImages(deletedImageIds);
       }
+
       try {
-        await invalidateCache({ productId: id }, "api/revalidate-product");
+        // invalidate cache
+        await invalidateProductCache(updatedProduct.slug);
       } catch (error) {
         winstonLogger.error("Cache invalidation failed", error);
       }
@@ -504,7 +538,7 @@ const deleteProduct = asyncHandler(
 // fetch products with filter (client)
 
 const getProductsForClient = asyncHandler(
-  async (req: AuthenticateRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     const { error, value } = productClientSchema.validate(req.query, {
       abortEarly: false,
     });
@@ -591,7 +625,6 @@ const getProductsForClient = asyncHandler(
 
     const sortByValue = SORT_FIELD_MAP[sortField] || "createdAt";
 
-    winstonLogger.info(sortField, "sortField");
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
@@ -602,6 +635,7 @@ const getProductsForClient = asyncHandler(
           : { updatedAt: "desc" },
         select: {
           id: true,
+          slug: true,
           name: true,
           brandId: true,
           categoryId: true,
@@ -645,7 +679,7 @@ const getProductsForClient = asyncHandler(
 );
 
 const getCategoriesLookup = asyncHandler(
-  async (req: AuthenticateRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     const categories = await prisma.category.findMany({
       where: {
         isActive: true,
@@ -666,7 +700,7 @@ const getCategoriesLookup = asyncHandler(
 );
 
 const getProductCategories = asyncHandler(
-  async (req: AuthenticateRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     const parentId = req.query.parentId ? (req.query.parentId as string) : null;
 
     const categories = await prisma.category.findMany({
@@ -683,6 +717,7 @@ const getProductCategories = asyncHandler(
         isActive: true,
         imageUrl: true,
         slug: true,
+        updatedAt: true,
       },
       orderBy: { name: "asc" },
     });
@@ -691,46 +726,77 @@ const getProductCategories = asyncHandler(
   },
 );
 
-const getProductLookups = asyncHandler(
-  async (req: AuthenticateRequest, res: Response) => {
-    const [brands, gender, size] = await Promise.all([
-      prisma.brand.findMany({
-        where: { isActive: true },
-        select: {
-          id: true,
-          name: true,
-        },
-        orderBy: { name: "asc" },
-      }),
-      prisma.gender.findMany({
-        where: {
-          isActive: true,
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-        orderBy: { name: "asc" },
-      }),
-      prisma.size.findMany({
-        where: {
-          isActive: true,
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-        orderBy: { name: "asc" },
-      }),
-    ]);
+const getProductLookups = asyncHandler(async (req: Request, res: Response) => {
+  const [brands, gender, size] = await Promise.all([
+    prisma.brand.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: { name: "asc" },
+    }),
+    prisma.gender.findMany({
+      where: {
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: { name: "asc" },
+    }),
+    prisma.size.findMany({
+      where: {
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
-    return res.status(200).json({
-      brands,
-      gender,
-      size,
-    });
-  },
-);
+  return res.status(200).json({
+    brands,
+    gender,
+    size,
+  });
+});
+
+const getAllProductSlug = asyncHandler(async (req: Request, res: Response) => {
+  const products = await prisma.product.findMany({
+    where: {
+      variants: {
+        some: {
+          isActive: true,
+        },
+      },
+    },
+    select: {
+      slug: true,
+      updatedAt: true,
+      category: {
+        select: {
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const formattedProducts = products.map((product) => ({
+    slug: product.slug,
+    updatedAt: product.updatedAt,
+    categorySlug: product.category.parent?.slug ?? null,
+  }));
+
+  res.status(200).json(formattedProducts);
+});
 
 export {
   createProduct,
@@ -743,4 +809,6 @@ export {
   getProductCategories,
   getCategoriesLookup,
   getProductsForClient,
+  getAllProductSlug,
+  getProductByIdForAdmin,
 };

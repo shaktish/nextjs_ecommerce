@@ -5,7 +5,7 @@ const publicRoutes = ["/auth/login", "/auth/register", "/collections"];
 const adminRoutes = ["/admin"];
 const userRoutes = ["/home"];
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
-const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const API_URL = process.env.API_URL!;
 
 export async function middleware(request: NextRequest) {
   console.log("middleware is running");
@@ -15,7 +15,6 @@ export async function middleware(request: NextRequest) {
   // 1️⃣ Allow public routes
   const isPublicRoute =
     pathname === "/" ||
-    pathname === "/home" ||
     publicRoutes.some((route) => pathname.startsWith(route));
 
   if (isPublicRoute) {
@@ -49,7 +48,7 @@ export async function middleware(request: NextRequest) {
       }
 
       if (!isAdmin && adminRoutes.some((r) => pathname.startsWith(r))) {
-        return NextResponse.redirect(new URL("/home", request.url));
+        return NextResponse.redirect(new URL("/", request.url));
       }
 
       return NextResponse.next();
@@ -62,15 +61,12 @@ export async function middleware(request: NextRequest) {
   try {
     console.log("going to request accessToken as refreshToken is still valid");
     // IMPORTANT: Must call backend using FULL URL, not "/api"
-    const refreshResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/refreshToken`,
-      {
-        method: "POST",
-        headers: {
-          Cookie: request.headers.get("cookie") || "",
-        },
+    const refreshResponse = await fetch(`${API_URL}/api/auth/refreshToken`, {
+      method: "POST",
+      headers: {
+        Cookie: request.headers.get("cookie") || "",
       },
-    );
+    });
 
     if (refreshResponse.ok) {
       // Grab Set-Cookie headers and return them to browser

@@ -41,16 +41,22 @@ export const updateProductPriceRange = async (
   });
 };
 
-export const invalidateCache = async (
-  data: Record<string, string>,
-  url: string,
-) => {
-  await fetch(`${process.env.NEXT_APP_URL}/${url}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-revalidate-secret": process.env.REVALIDATE_SECRET!,
+export const invalidateProductCache = async (slug: string): Promise<void> => {
+  const response = await fetch(
+    `${process.env.NEXT_APP_URL}/api/revalidate-product`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-revalidate-secret": process.env.REVALIDATE_SECRET!,
+      },
+      body: JSON.stringify({
+        productSlug: slug,
+      }),
     },
-    body: JSON.stringify(data),
-  });
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to invalidate cache. Status: ${response.status}`);
+  }
 };

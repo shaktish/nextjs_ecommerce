@@ -3,9 +3,11 @@ import {
   createProduct,
   deleteProduct,
   getAllProductsAdmin,
+  getAllProductSlug,
   getCategoriesLookup,
   getFeaturedProducts,
   getProduct,
+  getProductByIdForAdmin,
   getProductCategories,
   getProductLookups,
   getProductsForClient,
@@ -26,6 +28,7 @@ router.get(
   isAdmin,
   getAllProductsAdmin,
 );
+router.get("/slug", getAllProductSlug);
 router.post(
   "/",
   AuthenticateJWT,
@@ -33,7 +36,8 @@ router.post(
   upload.array("images", 10),
   createProduct,
 );
-router.get("/:id", getProduct);
+router.get("/admin/:id", getProductByIdForAdmin);
+router.get("/:slug", getProduct);
 router.patch(
   "/:id",
   upload.array("images", 10),
