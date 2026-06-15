@@ -8,8 +8,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { ProductFormType } from "@/schemas/productSchema";
-import { Variant } from "@/types/product.types";
-import { ProductLookup } from "@/store/useProductStore";
+import { ProductLookup, Variant } from "@/types/product.types";
 import { Dispatch, SetStateAction } from "react";
 
 interface SizesProps {

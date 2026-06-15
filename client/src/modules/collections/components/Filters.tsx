@@ -1,8 +1,7 @@
 "use client";
 
 import { Slider } from "@/components/ui/slider";
-import { ProductLookup } from "@/store/useProductStore";
-import { Category } from "@/types/product.types";
+import { Category, ProductLookup } from "@/types/product.types";
 import { formatPrice } from "@/utils/number";
 
 export interface FilterSectionProps {
