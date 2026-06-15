@@ -19,8 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import CategoryDropdown from "./CategoryDropdown";
 import Sizes from "./Sizes";
 import { ProductFormType } from "@/schemas/productSchema";
-import { ProductLookup } from "@/store/useProductStore";
-import { Category, Variant } from "@/types/product.types";
+import { Category, ProductLookup, Variant } from "@/types/product.types";
 import { Dispatch, SetStateAction } from "react";
 
 interface ProductBasicInfoProps {
