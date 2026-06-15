@@ -24,7 +24,7 @@ const app: Express = express();
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
-app.use(rateLimiter({ limit: 100, window: 60 }));
+// app.use(rateLimiter({ limit: 100, window: 60 }));
 app.use(loggerHandler);
 app.get("/health", healthChecker);
 app.use("/api/auth", AuthRoutes);
