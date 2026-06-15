@@ -1,24 +1,24 @@
 // import RedisClient from 'ioredis'
 import { Redis } from "ioredis";
-import config from './envConfig'
+import config from "./envConfig";
 
-const redisUrl = config.redisUrl;
-if (!redisUrl) {
-    throw new Error("REDIS_URL is not defined");
-}
+let redisClient: Redis | null = null;
 
-const redisClient = new Redis(redisUrl, {
+if (config.redisUrl) {
+  redisClient = new Redis(config.redisUrl, {
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
-});
+  });
 
-redisClient.on("connect", () => {
+  redisClient.on("connect", () => {
     console.log("✅ Redis connected");
-});
+  });
 
-redisClient.on("error", (err) => {
+  redisClient.on("error", (err) => {
     console.error("❌ Redis error:", err);
-});
+  });
+} else {
+  console.log("⚠️ Redis disabled");
+}
 
 export default redisClient;
-
