@@ -53,7 +53,7 @@ model Address {
 model ProductImage {
   id        String   @id @default(cuid())
   url       String
-  publicId  String
+  publicId  String @unique
   productId String   // required for relation
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)  
 }
@@ -220,7 +220,7 @@ model Coupon {
 model FeaturedBanner {
     id String @id @default(cuid())
     url String
-    publicId String
+    publicId String @unique
     sortOrder Int
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

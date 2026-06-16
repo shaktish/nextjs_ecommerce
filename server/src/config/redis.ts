@@ -6,8 +6,6 @@ import winstonLogger from "../utils/winstonLogger";
 let redisClient: Redis | null = null;
 winstonLogger.info(config.redisUrl, "config.redisUrl");
 if (config.redisUrl) {
-  winstonLogger.warn("⚠️ Redis disabled");
-
   redisClient = new Redis(config.redisUrl, {
     maxRetriesPerRequest: null,
     enableReadyCheck: false,

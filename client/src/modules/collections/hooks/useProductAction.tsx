@@ -30,7 +30,7 @@ const useProductAction = ({ variants, productLookup }: UseProductAction) => {
 
   const [quantity, setQuantity] = useState(1);
   const selectedInCart = useMemo(() => {
-    return cartItems.find((item) => item.variantId === selectedVariant.id);
+    return cartItems?.find((item) => item.variantId === selectedVariant.id);
   }, [cartItems, selectedVariant.id]);
 
   const cartQuantity = selectedInCart?.quantity || 0;

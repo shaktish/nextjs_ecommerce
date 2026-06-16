@@ -63,7 +63,7 @@ function Cart() {
         ) : (
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-[70%] space-y-4">
-              {items.map((item) => (
+              {items?.map((item) => (
                 <div
                   key={item.id}
                   className="flex items-center gap-4 p-4 border rounded-lg relative"
@@ -133,7 +133,7 @@ function Cart() {
                 <span>Total MRP</span>
                 <span>
                   {formatPrice(
-                    items.reduce(
+                    items?.reduce(
                       (acc, item) => acc + item.price * item.quantity,
                       0,
                     ),

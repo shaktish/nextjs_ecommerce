@@ -4,7 +4,7 @@ import { getProductCategories } from "@/modules/collections/api/getProductCatego
 
 async function Collections() {
   const productParentCategories = await getProductCategories();
-
+  console.log(productParentCategories, "pro");
   const columns =
     productParentCategories.length <= 2
       ? "grid-cols-3"
