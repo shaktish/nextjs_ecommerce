@@ -118,7 +118,7 @@ const Header = () => {
                     >
                       <ShoppingCart />
                       <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
-                        {items?.length}
+                        {items?.length || 0}
                       </span>
                     </div>
 

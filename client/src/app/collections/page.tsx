@@ -4,12 +4,6 @@ import { getProductCategories } from "@/modules/collections/api/getProductCatego
 
 async function Collections() {
   const productParentCategories = await getProductCategories();
-  console.log(productParentCategories, "pro");
-  const columns =
-    productParentCategories.length <= 2
-      ? "grid-cols-3"
-      : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
-
   return (
     <div className="p-6">
       <div className="text-center mb-3">
@@ -17,7 +11,9 @@ async function Collections() {
         <p className="text-lg">Explore our wide range of products!</p>
       </div>
 
-      <div className={`grid ${columns} gap-6`}>
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6`}
+      >
         {productParentCategories.map((category: any) => (
           <Link
             key={category.id}

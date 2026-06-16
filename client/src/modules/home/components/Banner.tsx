@@ -13,7 +13,7 @@ const Banner = ({ banners }: BannerProps) => {
   const { slide, nextHandler, prevHandler } = useSlider(banners, isBannerHover);
   return (
     <div
-      className="group relative w-full h-[600px] overflow-hidden"
+      className="group relative w-full h-[250px] sm:h-[350px] md:h-[450px] lg:h-[600px] overflow-hidden"
       onMouseEnter={() => setIsBannerHover(true)}
       onMouseLeave={() => setIsBannerHover(false)}
     >

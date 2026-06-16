@@ -128,7 +128,7 @@ export const products = [
       "Soft, breathable 100% cotton t-shirt with durable stitching and a relaxed fit",
     categoryId: menTshirt,
     genderId: menGender,
-    isFeatured: false,
+    isFeatured: true,
   },
   {
     name: "Saree Seeded",
@@ -138,7 +138,7 @@ export const products = [
       "Embody traditional grace with our Kancheepuram Silk Red Saree adorned with florals and leaves in zari. The self design border embellished with florals and leaves in lines paints a surreal canvas. The divine appearance is concluded with an elegant floral brocade pallu harmonizing beautifully with the self with border blouse, thus embodying timeless heritage.",
     categoryId: womenSareeCategory,
     genderId: womenGender,
-    isFeatured: false,
+    isFeatured: true,
   },
 ];
 
