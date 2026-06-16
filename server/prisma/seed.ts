@@ -122,6 +122,7 @@ const seedCategories = async () => {
       create: category,
     });
   }
+  console.log("seeded Categories");
 };
 
 const seedProducts = async () => {
@@ -145,6 +146,7 @@ const seedProducts = async () => {
       },
     });
   }
+  console.log("seeded products");
 };
 
 const seedProductVariants = async () => {
@@ -194,6 +196,8 @@ const seedProductVariants = async () => {
       },
     });
   }
+
+  console.log("seeded product variants");
 };
 
 const seedBanners = async () => {
@@ -210,6 +214,7 @@ const seedBanners = async () => {
       },
     });
   }
+  console.log("seeded banner");
 };
 
 const seedProductImages = async () => {
@@ -223,7 +228,7 @@ const seedProductImages = async () => {
     if (product?.id) {
       await prisma.productImage.upsert({
         where: {
-          publicId: item.publicId,
+          url: item.url,
         },
         update: {
           url: item.url,
@@ -237,6 +242,8 @@ const seedProductImages = async () => {
       });
     }
   }
+
+  console.log("seeded images");
 };
 
 const addLookups = async () => {
