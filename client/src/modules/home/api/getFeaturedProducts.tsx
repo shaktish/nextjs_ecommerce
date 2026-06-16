@@ -3,7 +3,7 @@ export async function getFeaturedProducts() {
     `${process.env.API_URL}/api/product/feature-products`,
     {
       next: {
-        revalidate: 300,
+        revalidate: 0,
       },
     },
   );

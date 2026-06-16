@@ -20,41 +20,47 @@ const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
         <p className="text-center mb-8 text-muted-foreground">
           Designed to keep your satisfaction and warmth
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {featureProducts &&
-            featureProducts.map((productItem) => {
-              return (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {featureProducts?.map((productItem) => (
+            <div
+              key={productItem.id}
+              className="group cursor-pointer"
+              onClick={() =>
+                router.push(`/collections/men/${productItem.slug}`)
+              }
+            >
+              <div className="relative overflow-hidden rounded-lg">
+                <div className="aspect-[3/4]">
+                  <Image
+                    src={productItem.images[0].url}
+                    alt={productItem.name}
+                    width={400}
+                    height={600}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
                 <div
-                  key={productItem.id}
-                  className="relative group overflow-hidden"
+                  className="
+                    absolute inset-0
+                    hidden md:flex
+                    items-center justify-center
+                    bg-gradient-to-t from-black/70 via-black/30 to-transparent
+                    opacity-0
+                    group-hover:opacity-100
+                    transition-opacity duration-300"
                 >
-                  <div className="aspect-[3/4]">
-                    <Image
-                      src={productItem.images[0].url}
-                      alt={productItem.name}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      width={400}
-                      height={600}
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-black bg-opacity-25 flex justify-center items-center opacity-0 group-hover:opacity-80 transition-opacity duration-300">
-                    <div className="text-center text-white p-4">
-                      <h3 className="text-xl font-semibold mb-2">
-                        {productItem.name}
-                      </h3>
-                      <Button
-                        className="cursor-pointer mt-4 bg-white text-black hover:bg-white"
-                        onClick={() =>
-                          router.push(`/collections/men/${productItem.id}`)
-                        }
-                      >
-                        Shop Now
-                      </Button>
-                    </div>
+                  <div className="text-center text-white">
+                    <p className="font-medium">Shop Now</p>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+              <div className="mt-3">
+                <h3 className="font-medium text-sm md:text-base line-clamp-2">
+                  {productItem.name}
+                </h3>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

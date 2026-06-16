@@ -20,45 +20,73 @@ export function ProductGrid({ products, productLookup }: ProductGridProps) {
         products.map((product) => {
           console.log(product, "pr");
           return (
-            <div key={product.id} className="group">
-              <div className="relative aspect-[3/4] mb-4 bg-gray-100 overflow-hidden">
+            <div
+              key={product.id}
+              className="group cursor-pointer"
+              onClick={() => router.push(`${pathname}/${product.slug}`)}
+            >
+              <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-gray-100">
                 <img
                   src={product.images[0].url}
                   alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/20 bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <Button
-                    className="bg-foreground text-background hover:bg-background hover:text-foreground cursor-pointer"
-                    onClick={() => router.push(`${pathname}/${product.slug}`)}
-                  >
-                    Quick View
-                  </Button>
+
+                {/* Desktop Hover Overlay */}
+                <div
+                  className="
+                    absolute inset-0
+                    hidden md:flex
+                    items-center justify-center
+                    bg-gradient-to-t from-black/70 via-black/30 to-transparent
+                    opacity-0
+                    group-hover:opacity-100
+                    transition-opacity duration-300
+                  "
+                >
+                  <div className="text-center text-white">
+                    <p className="font-medium text-lg">Quick View</p>
+                  </div>
                 </div>
               </div>
-              <h3 className="text-lg font-semibold">{product.name}</h3>
-              <div className="flex items-center justify-between">
-                <div className="mt-3 text-sm w-full">
-                  <div className="grid grid-cols-2 font-semibold border-b pb-1">
-                    <span>Size</span>
-                    <span>Price</span>
-                  </div>
 
-                  {product.variants.map((variant) => {
-                    const size = productLookup?.size?.find(
-                      (s) => s.id === variant.sizeId,
-                    );
-                    return (
-                      <div
-                        key={variant.id}
-                        className="grid grid-cols-2 py-1 text-muted-foreground"
-                      >
-                        <span>{size?.name}</span>
-                        <span>{formatPrice(variant.price)}</span>
-                      </div>
-                    );
-                  })}
+              {/* Product Info */}
+              <div className="mt-3">
+                <h3 className="font-semibold text-base md:text-lg line-clamp-2">
+                  {product.name}
+                </h3>
+
+                {/* Starting Price */}
+                <p className="mt-1 text-sm text-muted-foreground">
+                  From{" "}
+                  {formatPrice(
+                    Math.min(...product.variants.map((v) => v.price)),
+                  )}
+                </p>
+              </div>
+
+              {/* Size/Price Table */}
+              <div className="mt-3 text-sm">
+                <div className="grid grid-cols-2 font-semibold border-b pb-1">
+                  <span>Size</span>
+                  <span>Price</span>
                 </div>
+
+                {product.variants.map((variant) => {
+                  const size = productLookup?.size?.find(
+                    (s) => s.id === variant.sizeId,
+                  );
+
+                  return (
+                    <div
+                      key={variant.id}
+                      className="grid grid-cols-2 py-1 text-muted-foreground"
+                    >
+                      <span>{size?.name}</span>
+                      <span>{formatPrice(variant.price)}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );

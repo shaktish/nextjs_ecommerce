@@ -143,6 +143,7 @@ const seedProducts = async () => {
         brandId: product.brandId,
         categoryId: product.categoryId,
         genderId: product.genderId,
+        isFeatured: product.isFeatured,
       },
     });
   }
