@@ -9,9 +9,6 @@ const API_URL = process.env.API_URL!;
 
 export async function middleware(request: NextRequest) {
   console.log("middleware is running");
-  console.log(JWT_SECRET, "JWT_SECRET");
-  console.log(API_URL, "API_URL");
-  console.log(process.env.JWT_SECRET, "process.env.JWT_SECRET");
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/api")) return NextResponse.next();
@@ -25,15 +22,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  console.log("ALL COOKIES", request.cookies.getAll());
-  console.log("COOKIE HEADER", request.headers.get("cookie"));
-
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
 
-  console.log("pathname:", pathname);
-  console.log("accessToken:", !!accessToken);
-  console.log("refreshToken:", !!refreshToken);
   // 2️⃣ No access token → redirect to login
   if (!refreshToken) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
@@ -71,7 +62,6 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    console.log("CALLING REFRESH API");
     console.log("going to request accessToken as refreshToken is still valid");
     // IMPORTANT: Must call backend using FULL URL, not "/api"
     const refreshResponse = await fetch(`${API_URL}/api/auth/refreshToken`, {
