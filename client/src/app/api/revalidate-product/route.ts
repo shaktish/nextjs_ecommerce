@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const { productSlug } = data;
   revalidateTag("products", "max");
   revalidateTag(`product-${productSlug}`, "max");
-  console.log("validated");
+  console.log("validated data", data);
   return Response.json({
     success: true,
   });

@@ -10,6 +10,8 @@ interface Config {
   CLOUDINARY_CLOUD_NAME: string;
   CLOUDINARY_API_KEY: string;
   CLOUDINARY_API_SECRET: string;
+  NEXT_APP_URL: string;
+  REVALIDATE_SECRET: string;
 }
 const config: Config = {
   port: Number(process.env.PORT) || 5010,
@@ -19,6 +21,8 @@ const config: Config = {
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || "",
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || "",
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || "",
+  NEXT_APP_URL: process.env.NEXT_APP_URL || "",
+  REVALIDATE_SECRET: process.env.REVALIDATE_SECRET || "",
 };
 
 export default config;
