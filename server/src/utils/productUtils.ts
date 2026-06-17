@@ -42,7 +42,7 @@ export const updateProductPriceRange = async (
 
 export const invalidateProductCache = async (slug: string): Promise<void> => {
   const response = await fetch(
-    `${process.env.API_URL}/api/revalidate-product`,
+    `${process.env.NEXT_APP_URL}/api/revalidate-product`,
     {
       method: "POST",
       headers: {
