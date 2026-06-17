@@ -26,10 +26,12 @@ const setTokens = async (
   userId: string,
 ) => {
   const isProd = config.env === "production";
+  console.log("NODE_ENV:", config.env);
+
   await updateRefreshTokenToDb(userId, refreshToken);
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-    secure: false,
+    secure: isProd,
     sameSite: isProd ? "none" : "lax",
     maxAge: isProd ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000, // 1 hour / 1 day
     // maxAge: isProd ? 60 * 60 * 1000 : 60 * 1000,// 1min
@@ -38,7 +40,7 @@ const setTokens = async (
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: false,
+    secure: isProd,
     sameSite: isProd ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: "/",

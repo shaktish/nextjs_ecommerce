@@ -25,6 +25,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  console.log("ALL COOKIES", request.cookies.getAll());
+  console.log("COOKIE HEADER", request.headers.get("cookie"));
+
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
 
