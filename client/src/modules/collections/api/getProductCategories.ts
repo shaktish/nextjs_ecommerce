@@ -8,7 +8,8 @@ export async function getProductCategories(parentId?: string) {
     `${process.env.API_URL}/api/product/product-categories`,
     {
       next: {
-        revalidate: 300, // 1 hour
+        revalidate: 300, // 5mins
+        tags: ["products"],
       },
     },
   );
