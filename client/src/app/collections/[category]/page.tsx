@@ -41,6 +41,10 @@ async function ListingPage({ searchParams, params }: PageProps) {
     queryParams.set("category", category);
   }
 
+  if (!searchParamsObj.limit) {
+    queryParams.set("limit", "5");
+  }
+
   Object.entries(searchParamsObj).forEach(([key, value]) => {
     if (value && paramsList.includes(key)) {
       queryParams.set(key, value);

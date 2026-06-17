@@ -1,7 +1,7 @@
 export async function getFeaturedBanner() {
   const response = await fetch(`${process.env.API_URL}/api/feature-banner`, {
     next: {
-      revalidate: 300,
+      revalidate: 3600,
     },
   });
 

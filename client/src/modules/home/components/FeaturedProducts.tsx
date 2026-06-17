@@ -31,13 +31,19 @@ const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
             >
               <div className="relative overflow-hidden rounded-lg">
                 <div className="aspect-[3/4]">
-                  <Image
-                    src={productItem.images[0].url}
-                    alt={productItem.name}
-                    width={400}
-                    height={600}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {productItem.images?.[0]?.url ? (
+                    <Image
+                      src={productItem.images[0].url}
+                      alt={productItem.name}
+                      width={400}
+                      height={600}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm text-gray-500">
+                      No Image
+                    </div>
+                  )}
                 </div>
                 <div
                   className="

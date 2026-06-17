@@ -47,33 +47,6 @@ const createUsers = async () => {
   }
 };
 
-const createAdminUser = async () => {
-  const email = "admin@gmail.com";
-  const password = "123456";
-  const name = "Admin";
-
-  const existingAdmin = await prisma.user.findFirst({
-    where: { role: "Admin" },
-  });
-
-  if (existingAdmin) {
-    console.log("Admin user already exists");
-    return;
-  }
-
-  const hashedPassword = await hashPassword(password);
-  const adminUser = await prisma.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      name,
-      role: "Admin",
-    },
-  });
-
-  console.log("Admin user created:", adminUser.email);
-};
-
 const seedBrand = async () => {
   for (const brand of brands) {
     await prisma.brand.upsert({
@@ -138,7 +111,7 @@ const seedProducts = async () => {
       update: {},
       create: {
         name: product.name,
-        slug: textToSlug(product.name),
+        slug: product.slug,
         description: product.description,
         brandId: product.brandId,
         categoryId: product.categoryId,

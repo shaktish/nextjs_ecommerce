@@ -1,9 +1,8 @@
 "use client";
-
-import { Button } from "@/components/ui/button";
 import { Product } from "@/store/useProductStore";
 import { ProductLookup, VariantForTable } from "@/types/product.types";
 import { formatPrice } from "@/utils/number";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
 interface ProductGridProps {
@@ -18,7 +17,6 @@ export function ProductGrid({ products, productLookup }: ProductGridProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {products &&
         products.map((product) => {
-          console.log(product, "pr");
           return (
             <div
               key={product.id}
@@ -26,11 +24,19 @@ export function ProductGrid({ products, productLookup }: ProductGridProps) {
               onClick={() => router.push(`${pathname}/${product.slug}`)}
             >
               <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-gray-100">
-                <img
-                  src={product.images[0].url}
-                  alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                {product.images?.[0]?.url ? (
+                  <Image
+                    src={product.images[0]?.url}
+                    alt={product.name}
+                    width={400}
+                    height={600}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm text-gray-500">
+                    No Image
+                  </div>
+                )}
 
                 {/* Desktop Hover Overlay */}
                 <div
