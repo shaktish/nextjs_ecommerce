@@ -3,6 +3,7 @@ import config from "../config/envConfig";
 import { prisma } from "../server";
 import winstonLogger from "./winstonLogger";
 import bcrypt from "bcryptjs";
+import { ONE_HOUR, SEVEN_DAYS, TEN_MINUTES } from "../constants/time";
 
 const updateRefreshTokenToDb = async (userId: string, refreshToken: string) => {
   const hashedToken = await bcrypt.hash(refreshToken, 10);
@@ -26,25 +27,40 @@ const setTokens = async (
   userId: string,
 ) => {
   const isProd = config.env === "production";
-  console.log("NODE_ENV:", config.env);
+  const httpCookieHelper = (
+    httpOnly: boolean,
+    secure: boolean,
+    sameSite: CookieSameSite,
+    maxAge: number,
+    path: string,
+  ) => {
+    return {
+      httpOnly,
+      secure,
+      sameSite,
+      maxAge,
+      path,
+    };
+  };
 
   await updateRefreshTokenToDb(userId, refreshToken);
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
-    maxAge: isProd ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000, // 1 hour / 1 day
-    // maxAge: isProd ? 60 * 60 * 1000 : 60 * 1000,// 1min
-    path: "/",
-  });
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: "/",
-  });
+  const COOKIE_SAME_SITE: CookieSameSite = isProd ? "none" : "lax";
+  const accessTokenCookieData = httpCookieHelper(
+    true,
+    isProd,
+    COOKIE_SAME_SITE,
+    isProd ? ONE_HOUR : TEN_MINUTES,
+    "/",
+  );
+  const refreshTokenCookieData = httpCookieHelper(
+    true,
+    isProd,
+    COOKIE_SAME_SITE,
+    SEVEN_DAYS,
+    "/",
+  );
+  res.cookie("accessToken", accessToken, accessTokenCookieData);
+  res.cookie("refreshToken", refreshToken, refreshTokenCookieData);
 };
 
 const clearRefreshTokenToDb = async (userId: string) => {
