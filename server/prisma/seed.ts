@@ -182,9 +182,11 @@ const seedBanners = async () => {
       },
       update: {},
       create: {
+        id: banner.id,
         publicId: banner.publicId,
         url: banner.url,
         sortOrder: banner.sortOrder,
+        redirectUrl: banner.redirectUrl,
       },
     });
   }
