@@ -475,12 +475,14 @@ export const productVariantSeed = [
 
 export const featureBannerSeed = [
   {
+    id: "ven1.jpg",
     publicId: "ecommerce-feature-banners/ojsi9iaugpvcaxdeecc9",
     url: "https://res.cloudinary.com/dzpioxwhg/image/upload/v1782136533/ecommerce-feature-banners/ojsi9iaugpvcaxdeecc9.jpg",
     sortOrder: 1,
     redirectUrl: "collections/men?brands=vanheusen",
   },
   {
+    id: "green_saree.jpg",
     publicId: "ecommerce-feature-banners/sjuccdi639mq3smx3q9h.jpg",
     url: "https://res.cloudinary.com/dzpioxwhg/image/upload/v1782134552/ecommerce-feature-banners/sjuccdi639mq3smx3q9h.jpg",
     sortOrder: 2,
