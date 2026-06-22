@@ -13,25 +13,18 @@ import { Button } from "@/components/ui/button";
 import { useFeatureBannerStore } from "@/store/useFeatureBannerStore";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
+import { FeatureBanner } from "@/types/featureBanner.types";
+import { formatBannerData } from "@/modules/admin/settings/utils";
 
 const Settings = () => {
-  const {
-    createFeatureBanner,
-    getAllFeatureBanners,
-    updateFeatureBanner,
-    isLoading,
-  } = useFeatureBannerStore();
-  const [editMode, setEditMode] = useState<boolean>(false);
+  const { getAllFeatureBanners, updateFeatureBanner, isLoading } =
+    useFeatureBannerStore();
   const [deletedBannerIds, setDeletedBannerIds] = useState<string[]>([]);
-  const [images, setImages] = useState<
-    {
-      id: string;
-      file?: File;
-      preview: string;
-      isNew: boolean;
-      publicId?: string;
-    }[]
-  >([]);
+  const [images, setImages] = useState<FeatureBanner[]>([]);
+
+  const normalizeFileName = (fileName: string): string => {
+    return fileName.trim().replace(/\s+/g, "_").toLowerCase();
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
@@ -39,7 +32,7 @@ const Settings = () => {
     const files = Array.from(event.target.files);
 
     const newItems = files.map((file) => ({
-      id: file.name,
+      id: normalizeFileName(file.name),
       file,
       preview: URL.createObjectURL(file),
       isNew: true,
@@ -75,62 +68,108 @@ const Settings = () => {
     const loadBanners = async () => {
       const data = await getAllFeatureBanners();
       if (data && data.length > 0) {
-        setEditMode(true);
-        setImages(
-          data.map((item) => ({
-            id: item.id,
-            url: item.url,
-            publicId: item.publicId,
-            preview: item.url,
-            isNew: false,
-          }))
-        );
+        const featureBannerData = data.map((item) => formatBannerData(item));
+        setImages(featureBannerData);
       }
     };
-
     loadBanners();
   }, []);
+
   const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData();
 
-    let response;
-    if (editMode) {
-      images
-        .filter((item) => item.isNew)
-        .forEach((item) => formData.append("images", item.file!));
-      const bannerSortOrder = images.map((item, i) => {
+    // * Validation
+    const missingUrIds = images
+      .filter((item) => !item.redirectUrl?.trim())
+      .map((item) => item.id);
+    if (missingUrIds.length > 0) {
+      const updatedImages = images.map((item) => {
+        if (missingUrIds.includes(item.id)) {
+          return {
+            ...item,
+            hasError: true,
+          };
+        } else {
+          return item;
+        }
+      });
+      setImages(updatedImages);
+      toast.error("All banners must have a redirect URL");
+      return;
+    }
+
+    const formData = new FormData();
+    // * Prepare images with sort order
+    const imagesWithSortOrder = images.map((item, i) => {
+      return {
+        ...item,
+        sortOrder: i + 1,
+      };
+    });
+
+    const existingBannersChanged = imagesWithSortOrder
+      .filter(
+        (item) =>
+          !item.isNew &&
+          (item.isOriginalRedirectUrl !== item.redirectUrl ||
+            item.sortOrder !== item.isOriginalSortOrder),
+      )
+      .map((item) => {
         return {
           id: item.id,
-          sortOrder: i + 1,
+          redirectUrl: item.redirectUrl,
+          sortOrder: item.sortOrder,
         };
       });
-      formData.append("bannerOrder", JSON.stringify(bannerSortOrder));
-      if (deletedBannerIds.length > 0) {
-        formData.append("deletedImageIds", JSON.stringify(deletedBannerIds));
-      }
-      response = await updateFeatureBanner(formData);
-    } else {
-      images.forEach((item) => formData.append("images", item.file!));
-      response = await createFeatureBanner(formData);
+
+    if (existingBannersChanged.length > 0) {
+      formData.append(
+        "existingBannersRedirectUrlChange",
+        JSON.stringify(existingBannersChanged),
+      );
     }
+
+    const bannerData = imagesWithSortOrder
+      .map((item) => {
+        return {
+          id: item.id,
+          sortOrder: item.sortOrder,
+          redirectUrl: item.redirectUrl,
+          isNew: item.isNew,
+        };
+      })
+      .filter((item) => item.isNew);
+
+    formData.append("bannerData", JSON.stringify(bannerData));
+    images
+      .filter((item) => item.isNew)
+      .forEach((item) => formData.append("images", item.file!));
+
+    if (deletedBannerIds.length > 0) {
+      formData.append("deletedImageIds", JSON.stringify(deletedBannerIds));
+    }
+
+    let response = await updateFeatureBanner(formData);
 
     if (response?.data && response?.data.length > 0) {
       toast.success(response?.message);
-      setImages(
-        response.data.map((item) => ({
-          id: item.id,
-          preview: item.url,
-          publicId: item.publicId,
-          isNew: false,
-        }))
-      );
+      const updatedData = response.data.map((item) => formatBannerData(item));
+      setImages(updatedData);
     }
   };
 
-  const submitButtonLoading = editMode ? "Updating..." : "Submitting...";
-
-  const submitButton = "Submit";
+  const inputChangeHandler = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    id: string,
+  ) => {
+    setImages((prev) =>
+      prev.map((img) =>
+        img.id === id
+          ? { ...img, redirectUrl: e.target.value, hasError: false }
+          : img,
+      ),
+    );
+  };
 
   return (
     <div>
@@ -176,12 +215,25 @@ const Settings = () => {
                 >
                   <div className="mt-4 flex flex-wrap gap-2">
                     {images.map((item) => (
-                      <SortableImage
-                        key={item.id}
-                        id={item.id}
-                        preview={item.preview}
-                        onRemove={() => removeImageHandler(item)}
-                      />
+                      <div key={item.id} className="flex flex-col gap-2">
+                        <SortableImage
+                          key={item.id}
+                          id={item.id}
+                          preview={item.preview}
+                          onRemove={() => removeImageHandler(item)}
+                        />
+                        <span>
+                          <input
+                            value={item.redirectUrl || ""}
+                            type="text"
+                            placeholder="Enter Redirect URL"
+                            className={`border rounded px-2 py-1 sm ${item.hasError ? "border-red-500 focus:ring-red-500" : "border-gray-300"}`}
+                            onChange={(e) => {
+                              inputChangeHandler(e, item.id);
+                            }}
+                          />
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </SortableContext>
@@ -190,7 +242,7 @@ const Settings = () => {
           </div>
           <Button type="submit">
             {isLoading && <Spinner />}
-            {isLoading ? submitButtonLoading : submitButton}
+            {isLoading ? "Updating..." : "Submit"}
           </Button>
         </form>
       </div>

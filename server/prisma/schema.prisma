@@ -218,10 +218,12 @@ model Coupon {
 
 // settings - manage banner 
 model FeaturedBanner {
-    id String @id @default(cuid())
+    id String @id
     url String
-    publicId String @unique
+    publicId String @unique    
+    redirectUrl String @unique
     sortOrder Int
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
 }

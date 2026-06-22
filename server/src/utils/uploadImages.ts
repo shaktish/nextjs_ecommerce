@@ -19,7 +19,11 @@ export const uploadImages = async (
     } catch (err) {
       winstonLogger.warn("File already deleted or missing:", file.path);
     }
-    return { url: result.secure_url, publicId: result.public_id };
+    return {
+      url: result.secure_url,
+      publicId: result.public_id,
+      fileName: result.original_filename,
+    };
   });
 
   return Promise.all(uploadPromises);

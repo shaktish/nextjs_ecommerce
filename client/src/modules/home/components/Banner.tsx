@@ -1,16 +1,18 @@
 "use client";
-import { FeatureBanner } from "@/store/useFeatureBannerStore";
+import { FeatureBannerAPI } from "@/store/useFeatureBannerStore";
 import useSlider from "../hooks/useSlider";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface BannerProps {
-  banners: FeatureBanner[];
+  banners: FeatureBannerAPI[];
 }
 const Banner = ({ banners }: BannerProps) => {
   const [isBannerHover, setIsBannerHover] = useState(false);
   const { slide, nextHandler, prevHandler } = useSlider(banners, isBannerHover);
+
   return (
     <div
       className="group relative w-full h-[250px] sm:h-[350px] md:h-[450px] lg:h-[600px] overflow-hidden"
@@ -25,13 +27,15 @@ const Banner = ({ banners }: BannerProps) => {
           banners?.map((banner, index) => {
             return (
               <div className="relative min-w-full h-full" key={banner.id}>
-                <Image
-                  src={banner.url}
-                  alt={`Banner ${index}`}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  priority
-                  fill
-                />
+                <Link href={banner.redirectUrl}>
+                  <Image
+                    src={banner.url}
+                    alt={`Banner ${index}`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    priority
+                    fill
+                  />
+                </Link>
               </div>
             );
           })}

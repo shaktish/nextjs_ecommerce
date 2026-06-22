@@ -1,16 +1,13 @@
-"use client";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Product } from "@/store/useProductStore";
 import { Variant } from "@/types/product.types";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
 interface FeaturedProductsProps {
   featureProducts: Product<Variant>[];
 }
 
 const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
-  const router = useRouter();
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
@@ -22,12 +19,10 @@ const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
         </p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {featureProducts?.map((productItem) => (
-            <div
+            <Link
+              href={`/collections/men/${productItem.slug}`}
               key={productItem.id}
               className="group cursor-pointer"
-              onClick={() =>
-                router.push(`/collections/men/${productItem.slug}`)
-              }
             >
               <div className="relative overflow-hidden rounded-lg">
                 <div className="aspect-[3/4]">
@@ -65,7 +60,7 @@ const FeaturedProducts = ({ featureProducts }: FeaturedProductsProps) => {
                   {productItem.name}
                 </h3>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

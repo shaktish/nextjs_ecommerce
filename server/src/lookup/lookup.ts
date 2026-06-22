@@ -475,14 +475,16 @@ export const productVariantSeed = [
 
 export const featureBannerSeed = [
   {
-    publicId: "ecommerce-feature-banners/uxx2wkzuhvuimiehjp6a",
-    url: "https://res.cloudinary.com/dzpioxwhg/image/upload/v1776170899/ecommerce-feature-banners/uxx2wkzuhvuimiehjp6a.png",
+    publicId: "ecommerce-feature-banners/ojsi9iaugpvcaxdeecc9",
+    url: "https://res.cloudinary.com/dzpioxwhg/image/upload/v1782136533/ecommerce-feature-banners/ojsi9iaugpvcaxdeecc9.jpg",
     sortOrder: 1,
+    redirectUrl: "collections/men?brands=vanheusen",
   },
   {
-    publicId: "ecommerce-feature-banners/klepjg7yczju78b8ltxo.jpg",
-    url: "https://res.cloudinary.com/dzpioxwhg/image/upload/v1777309564/ecommerce-feature-banners/klepjg7yczju78b8ltxo.jpg",
-    sortOrder: 1,
+    publicId: "ecommerce-feature-banners/sjuccdi639mq3smx3q9h.jpg",
+    url: "https://res.cloudinary.com/dzpioxwhg/image/upload/v1782134552/ecommerce-feature-banners/sjuccdi639mq3smx3q9h.jpg",
+    sortOrder: 2,
+    redirectUrl: "collections/women?brands=kancheepuram&sizes=freeSize",
   },
 ];
 

@@ -21,13 +21,17 @@ function SortableImage({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="relative inline-block">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative inline-block w-full h-38"
+    >
       <Image
         src={preview}
         alt="preview"
-        width={80}
-        height={80}
-        className="w-20 h-20 object-cover rounded-md"
+        fill
+        className="object-cover rounded-md"
+        sizes="100vw"
       />
 
       <button
