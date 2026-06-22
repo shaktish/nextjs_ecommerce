@@ -178,7 +178,7 @@ const seedBanners = async () => {
   for (const banner of featureBannerSeed) {
     await prisma.featuredBanner.upsert({
       where: {
-        id: banner.publicId,
+        publicId: banner.publicId,
       },
       update: {},
       create: {
