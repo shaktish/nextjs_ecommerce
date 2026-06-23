@@ -31,11 +31,12 @@ const Banner = ({ banners }: BannerProps) => {
                   <Image
                     src={banner.url}
                     alt={`Banner ${index}`}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover object-left"
                     priority
                     fill
                   />
                 </Link>
+                s
               </div>
             );
           })}
