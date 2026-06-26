@@ -1,9 +1,10 @@
+import { DEFAULT_PRODUCT_IMAGE } from "@/constant/image-path";
 import { Product } from "@/store/useProductStore";
 import { Variant } from "@/types/product.types";
 import { Metadata } from "next";
 
 export function buildProductMetaData(product: Product<Variant>): Metadata {
-  const image = product.images[0]?.url ?? "/default-product.png";
+  const image = product.images[0]?.url ?? DEFAULT_PRODUCT_IMAGE;
 
   return {
     title: product.name,
