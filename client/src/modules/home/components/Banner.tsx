@@ -36,7 +36,6 @@ const Banner = ({ banners }: BannerProps) => {
                     fill
                   />
                 </Link>
-                s
               </div>
             );
           })}

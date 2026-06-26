@@ -242,7 +242,7 @@ const Settings = () => {
           </div>
           <Button type="submit">
             {isLoading && <Spinner />}
-            {isLoading ? "Updating..." : "Submit"}
+            {isLoading ? "Loading..." : "Submit"}
           </Button>
         </form>
       </div>
