@@ -11,8 +11,6 @@ export async function middleware(request: NextRequest) {
   console.log("middleware is running");
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/api")) return NextResponse.next();
-
   // 1️⃣ Allow public routes
   const isPublicRoute =
     pathname === "/" ||
@@ -87,5 +85,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };
