@@ -3,7 +3,7 @@ import config from "../config/envConfig";
 import { prisma } from "../server";
 import winstonLogger from "./winstonLogger";
 import bcrypt from "bcryptjs";
-import { ONE_HOUR, SEVEN_DAYS, TEN_MINUTES } from "../constants/time";
+import { ONE_DAY, SEVEN_DAYS, TEN_MINUTES } from "../constants/time";
 
 const updateRefreshTokenToDb = async (userId: string, refreshToken: string) => {
   const hashedToken = await bcrypt.hash(refreshToken, 10);
@@ -49,7 +49,7 @@ const setTokens = async (
     true,
     isProd,
     COOKIE_SAME_SITE,
-    isProd ? ONE_HOUR : TEN_MINUTES,
+    isProd ? TEN_MINUTES : ONE_DAY,
     "/",
   );
   const refreshTokenCookieData = httpCookieHelper(

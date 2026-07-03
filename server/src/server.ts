@@ -16,6 +16,7 @@ import { rateLimiter } from "./config/rateLimiter";
 import CouponRoutes from "./routes/couponRoutes";
 import FeatureBannerRoutes from "./routes/featureBannerRoutes";
 import CartRoutes from "./routes/cartRoutes";
+import AddressRoutes from "./routes/addressRoutes";
 import { PrismaClient } from "@prisma/client";
 
 export const prisma = new PrismaClient();
@@ -26,11 +27,14 @@ app.use(cookieParser());
 app.use(express.json());
 // app.use(rateLimiter({ limit: 100, window: 60 }));
 app.use(loggerHandler);
+
 app.get("/health", healthChecker);
 app.use("/api/auth", AuthRoutes);
 app.use("/api/product", ProductRoutes);
 app.use("/api/coupon", CouponRoutes);
 app.use("/api/feature-banner", FeatureBannerRoutes);
+app.use("/api/address", AddressRoutes);
+
 app.use("/api/cart", CartRoutes);
 
 app.use(globalErrorHandler);

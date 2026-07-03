@@ -1,7 +1,5 @@
-"use client";
+import { redirect } from "next/navigation";
 
-function UserAccount() {
-  return <div>UserAccount</div>;
+export default function Account() {
+  redirect("/account/orders");
 }
-
-export default UserAccount;
