@@ -52,7 +52,7 @@ function AddressForm({ mode, formData, id }: AddressFormProps) {
 
   const onSubmit = async (data: AddressFormData) => {
     try {
-      if (mode === "edit") {
+      if (mode === "edit" && id) {
         await updateAddress(id, data);
         toast.success("Address updated successfully");
       } else {
