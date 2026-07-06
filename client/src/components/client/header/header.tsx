@@ -21,6 +21,7 @@ import MobileNav from "./components/mobileNav";
 import { useCartStore } from "@/store/useCartStore";
 import ThemeToggle from "./components/ThemeToggle";
 import UserLoginButton from "./components/UserLoginButton";
+import { useStoreHydrated } from "@/hooks/useStoreHydrated";
 
 const navItems = [
   {
@@ -44,9 +45,11 @@ const navItems = [
 const Header = () => {
   const [open, setOpen] = useState(false);
   const { logout, user, isLoading: isAuthLoading } = useAuthStore();
+  const hydrated = useStoreHydrated();
+
   const pathname = usePathname();
   const [mobileView, setMobileView] = useState<"menu" | "account">("menu");
-  const { getCartItems, items } = useCartStore();
+  const { getCartItems, items, hasFetchedCartItems } = useCartStore();
 
   const router = useRouter();
 
@@ -74,6 +77,10 @@ const Header = () => {
       getCartItems();
     }
   }, [user?.id]);
+
+  if (!hydrated) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 shadow-sm bg-background">
@@ -110,7 +117,7 @@ const Header = () => {
           {
             <>
               <div className="hidden lg:flex items-center space-x-4">
-                {user && (
+                {user && hasFetchedCartItems && (
                   <>
                     <div
                       className="relative cursor-pointer"
@@ -142,7 +149,7 @@ const Header = () => {
                     </DropdownMenu>
                   </>
                 )}
-                {!isAuthLoading && !user && <UserLoginButton />}
+                {!user && !isAuthLoading && <UserLoginButton />}
                 <div>
                   <ThemeToggle isMobile={false} />
                 </div>

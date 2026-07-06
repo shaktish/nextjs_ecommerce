@@ -22,6 +22,8 @@ type CartStore = {
   cartId: string | null;
   items: CartItem[];
   isLoading: boolean;
+  subtotal: number;
+  hasFetchedCartItems: boolean;
   error: string | null;
   addToCart: (data: {
     variantId: string;
@@ -39,6 +41,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
   cartId: null,
   items: [],
   isLoading: false,
+  hasFetchedCartItems: false,
+  subtotal: 0,
   error: null,
   addToCart: async (data: { variantId: string; quantity: number }) => {
     set({ isLoading: true, error: null });
@@ -46,9 +50,15 @@ export const useCartStore = create<CartStore>((set, get) => ({
       const response = await axiosClient.post("/cart", data, {
         withCredentials: true,
       });
-      const item: CartItem = response.data.data.items;
+      const item: CartItem = response.data.items;
       const updated = [...get().items, item];
-      set({ items: updated, isLoading: false, error: null });
+      set({
+        items: updated,
+        isLoading: false,
+        error: null,
+        subtotal: response.data.subtotal,
+        cartId: response.data.cartId,
+      });
       return true;
     } catch (e: any) {
       set({
@@ -66,17 +76,21 @@ export const useCartStore = create<CartStore>((set, get) => ({
           ? { ...item, quantity: data.quantity }
           : item,
       );
-      set({
-        items: updatedItems,
-        isLoading: false,
-        error: null,
-      });
 
       const response = await axiosClient.patch("/cart", data, {
         withCredentials: true,
       });
 
-      return { success: response.data.success, message: response.data.message };
+      set({
+        items: updatedItems,
+        isLoading: false,
+        error: null,
+        subtotal: response.data?.subtotal,
+      });
+      return {
+        success: response.data.success,
+        message: response.data.message,
+      };
     } catch (error: any) {
       set({
         isLoading: false,
@@ -97,8 +111,10 @@ export const useCartStore = create<CartStore>((set, get) => ({
       error: null,
     });
     try {
-      await axiosClient.delete(`/cart/item/${id}`, { withCredentials: true });
-      set({ isLoading: false, error: null });
+      const response = await axiosClient.delete(`/cart/item/${id}`, {
+        withCredentials: true,
+      });
+      set({ isLoading: false, error: null, subtotal: response.data.subtotal });
       return true;
     } catch (error: any) {
       set({
@@ -116,8 +132,9 @@ export const useCartStore = create<CartStore>((set, get) => ({
         withCredentials: true,
       });
       set({
-        items: response.data?.data.items,
-        cartId: response.data.data.cartId,
+        items: response.data?.items,
+        cartId: response.data?.cartId,
+        subtotal: response.data?.subtotal,
         isLoading: false,
         error: null,
       });
@@ -126,6 +143,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
         isLoading: false,
         error: "Failed to getCart item",
       });
+    } finally {
+      set({ hasFetchedCartItems: true });
     }
   },
   clearAllItems: async () => {

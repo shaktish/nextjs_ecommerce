@@ -15,6 +15,15 @@ const mapCartItem = (item: any) => ({
   stock: item.variant.stock.quantity,
 });
 
+const getSummaryTotals = (items: any) => {
+  const subtotal = items.reduce(
+    (acc: number, item: any) => acc + item.price * item.quantity,
+    0,
+    4,
+  );
+  return subtotal;
+};
+
 const addToCart = asyncHandler(
   async (req: AuthenticateRequest, res: Response) => {
     const { variantId, quantity } = req.body;
@@ -132,10 +141,8 @@ const addToCart = asyncHandler(
 
       return res.status(200).json({
         message: "Item added to cart",
-        data: {
-          items: mapCartItem(updatedCart.items),
-          cartId: updatedCart.cartId,
-        },
+        items: mapCartItem(updatedCart.items),
+        cartId: updatedCart.cartId,
       });
     } catch (e: any) {
       if (e.message === "VARIANT_NOT_FOUND") {
@@ -159,7 +166,7 @@ const getCart = asyncHandler(
   async (req: AuthenticateRequest, res: Response) => {
     winstonLogger.info("Get Cart Endpoint called");
     const userId = req.user?.id;
-
+    winstonLogger.info(`userId: ${userId}`);
     const cart = await prisma.cart.findUnique({
       where: { userId },
       select: {
@@ -198,7 +205,19 @@ const getCart = asyncHandler(
       },
     });
     const updatedItems = cart?.items.map((item) => mapCartItem(item));
-    res.status(200).json({ data: { items: updatedItems, cartId: cart?.id } });
+    winstonLogger.info("updatedItems", updatedItems);
+
+    winstonLogger.info({
+      route: req.originalUrl,
+      method: req.method,
+      cartExists: !!cart,
+      cartId: cart?.id,
+    });
+    return res.status(200).json({
+      items: updatedItems,
+      cartId: cart?.id,
+      subtotal: getSummaryTotals(updatedItems),
+    });
   },
 );
 
@@ -207,18 +226,53 @@ const deleteCartItem = asyncHandler(
     const { cartItemId } = req.params;
     const userId = req.user?.id;
 
-    const deleted = await prisma.cartItem.deleteMany({
-      where: {
-        id: cartItemId,
-        cart: {
-          userId,
+    const { deletedItem, cart } = await prisma.$transaction(async (tx) => {
+      const deletedItem = await tx.cartItem.deleteMany({
+        where: {
+          id: cartItemId,
+          cart: {
+            userId,
+          },
         },
-      },
+      });
+
+      const cart = await tx.cart.findUnique({
+        where: { userId },
+        select: {
+          id: true,
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              price: true,
+              variant: {
+                select: {
+                  stock: {
+                    select: {
+                      quantity: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return {
+        cart,
+        deletedItem,
+      };
     });
-    if (deleted.count === 0) {
+
+    if (deletedItem.count === 0) {
       return res.status(404).json({ message: "Cart item not found" });
     }
-    res.status(200).json({ success: true, message: "Item removed from cart" });
+    res.status(200).json({
+      success: true,
+      message: "Item removed from cart",
+      subtotal: getSummaryTotals(cart?.items),
+    });
   },
 );
 
@@ -296,19 +350,42 @@ const updateCartItemQuantity = asyncHandler(
       });
     }
 
-    await prisma.cartItem.update({
-      where: { id: cartItemId },
-      data: { quantity: qty },
+    const cart = await prisma.$transaction(async (tx) => {
+      await tx.cartItem.update({
+        where: { id: cartItemId },
+        data: { quantity: qty },
+      });
+
+      return tx.cart.findUnique({
+        where: { userId },
+        select: {
+          id: true,
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              price: true,
+              variant: {
+                select: {
+                  stock: {
+                    select: {
+                      quantity: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: {
-        id: cartItemId,
-        quantity: qty,
-        unitPrice: cartItem.price,
-        totalPrice: cartItem.price * qty,
-      },
+      subtotal: getSummaryTotals(cart?.items),
+      id: cartItemId,
+      quantity: qty,
+      unitPrice: cartItem.price,
     });
   },
 );

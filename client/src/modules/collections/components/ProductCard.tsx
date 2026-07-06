@@ -1,5 +1,4 @@
 import { Product } from "@/store/useProductStore";
-import { Variant } from "@/types/product.types";
 import Image from "next/image";
 import ProductPreview from "../../../../public/images/product-preview.jpeg";
 

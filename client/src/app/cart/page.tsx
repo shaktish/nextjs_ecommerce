@@ -6,6 +6,9 @@ import { useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { CartSkeleton } from "@/modules/cart/skeleton/CartSkeleton";
+import Image from "next/image";
+import ProductPreview from "../../../public/images/product-preview.jpeg";
 
 function Cart() {
   const {
@@ -14,6 +17,8 @@ function Cart() {
     deleteCartItem,
     isLoading,
     updateCartItemQuantity,
+    hasFetchedCartItems,
+    subtotal,
   } = useCartStore();
 
   const router = useRouter();
@@ -51,15 +56,26 @@ function Cart() {
       toast.success("Item removed from cart");
     }
   };
+  const hasNoCartItems = !items || items.length === 0;
+
+  if (!hasFetchedCartItems) {
+    return <CartSkeleton />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-5xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-semibold mb-6">Your Cart</h1>
 
-        {items?.length === 0 ? (
-          <p className="text-gray-600">
-            There is nothing in your cart. Let's add some items..
-          </p>
+        {hasNoCartItems ? (
+          <>
+            <p className="text-gray-600 mb-2">
+              There is nothing in your cart. Let's add some items..
+            </p>
+            <Button onClick={() => router.push("/collections")}>
+              Explore Collections
+            </Button>
+          </>
         ) : (
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-[70%] space-y-4">
@@ -80,10 +96,12 @@ function Cart() {
                     </Button>
                   </div>
 
-                  <img
-                    src={item.image}
+                  <Image
+                    src={item.image || ProductPreview}
                     alt={item.name}
-                    className="w-20 h-20 object-cover rounded-md"
+                    className="object-cover rounded-md"
+                    width={80}
+                    height={120}
                   />
                   <div className="flex-1">
                     <h2 className="text-lg font-semibold">{item.name}</h2>
@@ -131,14 +149,7 @@ function Cart() {
 
               <div className="flex justify-between mb-2">
                 <span>Total MRP</span>
-                <span>
-                  {formatPrice(
-                    items?.reduce(
-                      (acc, item) => acc + item.price * item.quantity,
-                      0,
-                    ),
-                  )}
-                </span>
+                {<span>{formatPrice(subtotal)}</span>}
               </div>
 
               <Button
