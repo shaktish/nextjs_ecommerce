@@ -46,7 +46,9 @@ function AddressCard({ data }: AddressCard) {
               </Badge>
             )}
           </div>
-
+          <p className="text-sm font-semibold text-muted-foreground">
+            {data.phone}
+          </p>
           <p className="text-sm text-muted-foreground">
             {data.city}, {data.state}
           </p>

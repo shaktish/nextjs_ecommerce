@@ -38,6 +38,7 @@ function AddressForm({ mode, formData, id }: AddressFormProps) {
       city: formData?.city || "",
       postalCode: formData?.postalCode || "",
       address: formData?.address || "",
+      phone: formData?.phone || "",
       isDefault: formData?.isDefault || false,
     },
   });
@@ -79,6 +80,7 @@ function AddressForm({ mode, formData, id }: AddressFormProps) {
         <FormInput control={form.control} label="Country" name="country" />
         <FormInput control={form.control} label="State" name="state" />
         <FormInput control={form.control} label="City" name="city" />
+        <FormInput control={form.control} label="Phone" name="phone" />
         <FormInput
           control={form.control}
           label="Postal Code"

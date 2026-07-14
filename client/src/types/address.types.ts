@@ -5,5 +5,6 @@ export interface Address {
   country: string;
   state: string;
   id: string;
+  phone: string;
   isDefault: boolean;
 }

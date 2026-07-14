@@ -36,6 +36,7 @@
     "lodash": "^4.17.21",
     "multer": "^2.0.2",
     "nodemailer": "^8.0.10",
+    "razorpay": "^2.9.6",
     "uuid": "^14.0.0",
     "winston": "^3.18.3"
   },
