@@ -35,6 +35,7 @@ type CartStore = {
   deleteCartItem: (id: string) => Promise<boolean>;
   getCartItems: () => Promise<void>;
   clearAllItems: (cartId: string) => Promise<void>;
+  clearCart: () => void;
 };
 
 export const useCartStore = create<CartStore>((set, get) => ({
@@ -161,4 +162,5 @@ export const useCartStore = create<CartStore>((set, get) => ({
       });
     }
   },
+  clearCart: () => set({ items: [] }),
 }));
