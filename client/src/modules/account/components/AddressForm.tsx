@@ -33,6 +33,7 @@ function AddressForm({ mode, formData, id }: AddressFormProps) {
   const form = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
+      name: formData?.name || "",
       country: formData?.country || "",
       state: formData?.state || "",
       city: formData?.city || "",
@@ -77,6 +78,7 @@ function AddressForm({ mode, formData, id }: AddressFormProps) {
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-6 max-w-xl"
       >
+        <FormInput control={form.control} label="Name" name="name" />
         <FormInput control={form.control} label="Country" name="country" />
         <FormInput control={form.control} label="State" name="state" />
         <FormInput control={form.control} label="City" name="city" />
