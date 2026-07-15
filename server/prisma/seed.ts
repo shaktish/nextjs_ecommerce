@@ -145,6 +145,7 @@ const seedProductVariants = async () => {
     const variant = await prisma.productVariant.upsert({
       where: {
         sku: item.sku,
+        productId: product.id,
       },
       update: {
         price: item.price,
