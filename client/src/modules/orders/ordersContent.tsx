@@ -37,7 +37,7 @@ function ListOrders() {
   };
 
   const nextPageHandler = () => {
-    const params = updatePageParam(searchParams, currentPage - 1);
+    const params = updatePageParam(searchParams, currentPage + 1);
     updateRoute(params);
   };
 
