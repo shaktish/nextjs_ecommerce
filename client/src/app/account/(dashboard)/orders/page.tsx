@@ -1,16 +1,13 @@
+import OrderSkeleton from "@/modules/orders/api/OrderSkeletonLoader";
 import ListOrders from "@/modules/orders/ordersContent";
+import { Suspense } from "react";
 
-async function Orders({
-  searchParams,
-}: {
-  searchParams: {
-    page?: string;
-    limit?: string;
-  };
-}) {
+async function Orders() {
   return (
     <div>
-      <ListOrders searchParams={searchParams} />
+      <Suspense fallback={<OrderSkeleton />}>
+        <ListOrders />
+      </Suspense>
     </div>
   );
 }
