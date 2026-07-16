@@ -269,10 +269,12 @@ enum OrderStatus {
 }
 
 enum PaymentMethod {
-  PAYPAL
-  STRIPE
-  CREDIT_CARD
-  DEBIT_CARD
+  UPI
+  CARD
+  NETBANKING
+  WALLET
+  EMI
+  PAYLATER
   COD
 }
 
@@ -304,7 +306,7 @@ model Order {
   coupon        Coupon?       @relation(fields: [couponId], references: [id])
   total         Int
   status        OrderStatus   @default(PENDING)
-  paymentStatus PaymentStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING) // needed to maintain paymentStatus
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   payments      Payment[]

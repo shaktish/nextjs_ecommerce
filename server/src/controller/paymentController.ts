@@ -3,7 +3,13 @@ import { AuthenticateRequest } from "../middleware/authMiddleware";
 import asyncHandler from "../utils/asyncHandler";
 import { prisma } from "../server";
 import winstonLogger from "../utils/winstonLogger";
-import { Coupon, Order, OrderItem, Payment } from "@prisma/client";
+import {
+  Coupon,
+  Order,
+  OrderItem,
+  Payment,
+  PaymentMethod,
+} from "@prisma/client";
 import { razorpay } from "../config/razorPay";
 import crypto from "crypto";
 import AppError from "../utils/AppError";
@@ -26,6 +32,7 @@ const finalizePayment = async (
     winstonLogger.info(
       `Completing payment ${payment.id} for order ${order.id}`,
     );
+    const razorPayment = await razorpay.payments.fetch(razorpayPaymentId);
     // update payment
     const paymentUpdated = await tx.payment.updateMany({
       where: {
@@ -35,6 +42,7 @@ const finalizePayment = async (
       data: {
         status: "COMPLETED",
         razorpayPaymentId,
+        paymentMethod: razorPayment.method as PaymentMethod,
       },
     });
 
@@ -80,6 +88,7 @@ const finalizePayment = async (
       },
       data: {
         status: "PROCESSING",
+        paymentStatus: "COMPLETED",
       },
     });
 
