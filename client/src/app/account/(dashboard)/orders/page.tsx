@@ -1,9 +1,16 @@
 import ListOrders from "@/modules/orders/ordersContent";
 
-async function Orders() {
+async function Orders({
+  searchParams,
+}: {
+  searchParams: {
+    page?: string;
+    limit?: string;
+  };
+}) {
   return (
     <div>
-      <ListOrders />
+      <ListOrders searchParams={searchParams} />
     </div>
   );
 }

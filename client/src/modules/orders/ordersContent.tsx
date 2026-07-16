@@ -12,13 +12,19 @@ import { updatePageParam } from "../collections/utils/queryParams";
 import { startTransition } from "react";
 import OrderSkeleton from "./api/OrderSkeletonLoader";
 
-function ListOrders() {
+type Props = {
+  searchParams: {
+    page?: string;
+    limit?: string;
+  };
+};
+
+function ListOrders({ searchParams }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const currentPage = Number(searchParams.get("page")) || 1;
-  const limit = Number(searchParams.get("per-page")) || 5;
+  const currentPage = Number(searchParams.page) || 1;
+  const limit = Number(searchParams.limit) || 5;
 
   const { data, isLoading } = useQuery({
     queryKey: ["orders", currentPage, limit],
