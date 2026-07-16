@@ -42,7 +42,7 @@ const finalizePayment = async (
       data: {
         status: "COMPLETED",
         razorpayPaymentId,
-        paymentMethod: razorPayment.method as PaymentMethod,
+        paymentMethod: razorPayment.method.toUpperCase() as PaymentMethod,
       },
     });
 

@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useCouponStore } from "@/store/useCouponStore";
+import { getFormattedDate } from "@/utils/date";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -26,17 +27,6 @@ const CouponListAdmin = () => {
 
   const addNewCoupon = () => {
     router.push("/admin/coupons/add");
-  };
-
-  const getFormattedDate = (value: Date | undefined) => {
-    const locale = navigator?.language || "en-IN";
-    if (!value) {
-      return null;
-    }
-    return new Intl.DateTimeFormat(locale, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(value));
   };
 
   const editCouponHandler = (id: string) => {

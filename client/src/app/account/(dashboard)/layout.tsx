@@ -6,7 +6,7 @@ export default function AccountLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="p-6">
+    <div className="container mx-auto px-4 py-6">
       <AccountNav />
 
       {children}

@@ -26,7 +26,7 @@ import {
   updatePageParam,
 } from "../../../modules/collections/utils/queryParams";
 import { FilterSection } from "@/modules/collections/components/Filters";
-import { Pagination } from "@/modules/collections/components/Pagination";
+import { Pagination } from "@/components/common/Pagination";
 import { ProductGrid } from "@/modules/collections/components/ProductGrid";
 import { formatCategoryName } from "@/modules/collections/utils/formatCategoryName";
 import { sortByOptions } from "@/modules/collections/constants/constants";

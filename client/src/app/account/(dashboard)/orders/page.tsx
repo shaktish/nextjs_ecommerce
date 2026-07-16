@@ -1,7 +1,9 @@
-function Orders() {
+import ListOrders from "@/modules/orders/ordersContent";
+
+async function Orders() {
   return (
     <div>
-      <h1>Order</h1>
+      <ListOrders />
     </div>
   );
 }
