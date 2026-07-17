@@ -6,6 +6,14 @@ export type OrderItem = {
   price: string;
 };
 
+export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED";
+export type OrderStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
+
 export type Order = {
   id: string;
   createdAt: string;
@@ -13,4 +21,5 @@ export type Order = {
   shippingName: string;
   items: OrderItem[];
   imageUrl: string;
+  status: OrderStatus;
 };

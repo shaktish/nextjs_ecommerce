@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <ReactQueryProvider>
           <CommonLayout>{children}</CommonLayout>
-          <Toaster position="top-center" richColors />
+          <Toaster position="top-center" richColors closeButton />
         </ReactQueryProvider>
       </body>
     </html>

@@ -62,6 +62,7 @@ const getOrders = asyncHandler(
           createdAt: true,
           total: true,
           shippingName: true,
+          status: true,
           coupon: {
             select: {
               discountPercentage: true,
@@ -107,6 +108,7 @@ const getOrders = asyncHandler(
         createdAt: order.createdAt,
         total: order.total,
         shippingName: order.shippingName,
+        status: order.status,
         discountPercentage: order.coupon?.discountPercentage,
         items: order.items.map((item) => {
           return {

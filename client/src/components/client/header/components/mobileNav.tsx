@@ -61,7 +61,7 @@ function MobileNav({
                 <CornerDownLeft />
               </Button>
             </div>
-            <nav className="space-y-2">
+            <nav className="space-y-2 pl-4 pr-4">
               <Link
                 href={"/account"}
                 className="block w-full p-2"
@@ -81,7 +81,7 @@ function MobileNav({
               {navItems.map((item) => {
                 return (
                   <Link
-                    className="block w-full p-2"
+                    className="block w-full p-2 border-b"
                     href={item.to}
                     key={item.title}
                     onClick={onLinkClickHandler}

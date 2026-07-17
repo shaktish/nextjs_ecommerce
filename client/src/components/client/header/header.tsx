@@ -4,7 +4,7 @@ import Image from "next/image";
 import logo from "../../../../public/images/logo.png";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingCart, User } from "lucide-react";
+import { Loader, ShoppingCart, User } from "lucide-react";
 import { Button } from "../../ui/button";
 
 import { useAuthStore } from "@/store/useAuthStore";
@@ -22,25 +22,7 @@ import { useCartStore } from "@/store/useCartStore";
 import ThemeToggle from "./components/ThemeToggle";
 import UserLoginButton from "./components/UserLoginButton";
 import { useStoreHydrated } from "@/hooks/useStoreHydrated";
-
-const navItems = [
-  {
-    title: "Home",
-    to: "/",
-  },
-  {
-    title: "All Collections",
-    to: "/collections",
-  },
-  {
-    title: "Mens Collections",
-    to: "/collections/men",
-  },
-  {
-    title: "Women Collections",
-    to: "/collections/women",
-  },
-];
+import { navItems } from "@/constant/navigation";
 
 const Header = () => {
   const [open, setOpen] = useState(false);
@@ -55,6 +37,7 @@ const Header = () => {
 
   const onLinkClickHandler = () => {
     setOpen(false);
+    setMobileView("menu");
   };
 
   const logoutHandler = async () => {
@@ -117,6 +100,7 @@ const Header = () => {
           {
             <>
               <div className="hidden lg:flex items-center space-x-4">
+                {isAuthLoading && <Loader />}
                 {user && hasFetchedCartItems && (
                   <>
                     <div
@@ -131,8 +115,13 @@ const Header = () => {
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
                           <User className="h-5 w-5" />
+                          <span>{user.name}</span>
                         </Button>
                       </DropdownMenuTrigger>
 

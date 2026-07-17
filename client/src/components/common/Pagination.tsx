@@ -28,6 +28,7 @@ export function Pagination({
         size={"icon"}
         disabled={currentPage === 1}
         onClick={onPrevPage}
+        className="cursor-pointer"
       >
         <ChevronLeft className="w-4 h-4" />
       </Button>
@@ -38,7 +39,7 @@ export function Pagination({
           variant={currentPage === page ? "default" : "outline"}
           size={"icon"}
           onClick={() => onGoToPage(page)}
-          className="pointer"
+          className="cursor-pointer"
         >
           {page}
         </Button>
@@ -49,6 +50,7 @@ export function Pagination({
         size={"icon"}
         disabled={currentPage === totalPages}
         onClick={onNextPage}
+        className="cursor-pointer"
       >
         <ChevronRight className="w-4 h-4" />
       </Button>

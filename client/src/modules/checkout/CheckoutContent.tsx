@@ -12,9 +12,9 @@ import { Separator } from "@/components/ui/separator";
 import { CouponState } from "./types";
 import TotalCard from "./TotalCard";
 import { toast } from "sonner";
-import loadRazorpay from "@/lib/razorpay";
 import { createOrder } from "../payment/api/createOrder";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CheckoutContentProps {
   data: Address[];
@@ -22,6 +22,8 @@ interface CheckoutContentProps {
 
 function CheckoutContent({ data }: CheckoutContentProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
   const [couponState, setCouponState] = useState<CouponState>({
     message: "",
     valid: false,
@@ -81,6 +83,9 @@ function CheckoutContent({ data }: CheckoutContentProps) {
       }
       try {
         const res = await createOrder(data);
+        queryClient.invalidateQueries({
+          queryKey: ["orders"],
+        });
         router.push(`/payment?orderId=${res.orderId}`);
       } catch (e) {
         if (e instanceof Error) {

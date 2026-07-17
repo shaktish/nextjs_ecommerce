@@ -3,7 +3,7 @@
 import { getOrders } from "./api/getOrder";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Order } from "@/types/order.types";
+import { Order, OrderStatus } from "@/types/order.types";
 import { getFormattedDate } from "@/utils/date";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +11,18 @@ import { Pagination } from "@/components/common/Pagination";
 import { updatePageParam } from "../collections/utils/queryParams";
 import { startTransition } from "react";
 import OrderSkeleton from "./api/OrderSkeletonLoader";
+
+const orderStatusStyles: Record<OrderStatus, string> = {
+  PENDING: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400",
+
+  PROCESSING: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+
+  SHIPPED: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400",
+
+  DELIVERED: "bg-success/15 text-success",
+
+  CANCELLED: "bg-destructive/15 text-destructive",
+};
 
 function ListOrders() {
   const router = useRouter();
@@ -28,7 +40,6 @@ function ListOrders() {
         limit,
       }),
   });
-  console.log(data, "data");
 
   const updateRoute = (params: URLSearchParams) => {
     startTransition(() => {
@@ -89,7 +100,7 @@ function ListOrders() {
 
               <div>
                 <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Deliver To
+                  Ship To
                 </p>
                 <p className="font-medium">{order.shippingName}</p>
               </div>
@@ -102,6 +113,17 @@ function ListOrders() {
               <p className="font-mono text-sm break-all">{order.id}</p>
             </div>
           </div>
+          <div className="flex items-center gap-2 px-6 py-3 border-b">
+            <span className="text-sm text-muted-foreground">Order Status</span>
+
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                orderStatusStyles[order.status]
+              }`}
+            >
+              {order.status}
+            </span>
+          </div>
 
           {/* Products */}
           <div className="divide-y">
@@ -109,7 +131,7 @@ function ListOrders() {
               <Link
                 key={item.name}
                 href={`/collections/${item.category}/${item.slug}`}
-                className="group flex flex-col gap-4 p-6 transition hover:bg-gray-50 sm:flex-row"
+                className="group flex flex-col gap-4 p-6  sm:flex-row"
               >
                 <div className="overflow-hidden rounded-lg border bg-white">
                   <Image
@@ -127,7 +149,7 @@ function ListOrders() {
 
                 <div className="flex flex-1 flex-col justify-between">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition">
+                    <h2 className="text-lg font-semibold text-gray-900 group-hover:secondary-foreground transition">
                       {item.name}
                     </h2>
 
@@ -139,16 +161,11 @@ function ListOrders() {
                       ₹{item.price}
                     </p>
                   </div>
-
-                  <div className="mt-4 flex items-center gap-2 text-sm text-green-600">
-                    <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                    Order placed successfully
-                  </div>
                 </div>
 
                 <div className="flex items-center">
-                  <span className="text-sm font-medium text-blue-600 group-hover:underline">
-                    View Product →
+                  <span className="text-sm font-medium group-hover:underline">
+                    View Product
                   </span>
                 </div>
               </Link>
