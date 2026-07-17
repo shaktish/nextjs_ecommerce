@@ -57,8 +57,9 @@ export const useAuthStore = create<AuthStore>()(
       },
       login: async (userFormData: LoginUserFormData) => {
         set({ isLoading: true, error: null });
+        let response = null;
         try {
-          const response = await axiosClient.post("/auth/login", {
+          response = await axiosClient.post("/auth/login", {
             ...userFormData,
           });
           set({
@@ -67,12 +68,13 @@ export const useAuthStore = create<AuthStore>()(
           });
           return response.data.user;
         } catch (e) {
-          console.log(e, "e");
+          let message = "Login Failed";
+          if (axios.isAxiosError(e)) {
+            message = e.response?.data?.message;
+          }
           set({
             isLoading: false,
-            error: axios.isAxiosError(e)
-              ? e?.response?.data?.error
-              : "Login Failed",
+            error: message,
           });
           return null;
         }

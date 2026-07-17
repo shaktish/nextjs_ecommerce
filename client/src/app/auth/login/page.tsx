@@ -13,8 +13,7 @@ import { toast } from "sonner";
 
 function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, user } = useAuthStore();
-
+  const { login, isLoading, error } = useAuthStore();
   const [formData, setFormData] = useState({
     email: "",
     password: "",

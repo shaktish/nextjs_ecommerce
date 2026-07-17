@@ -1,4 +1,6 @@
 import config from "../config/envConfig";
+import { ACCESS_TOKEN_EXPIRY_TIME } from "../constants/time";
+import { JWT_AUDIENCE, JWT_ISSUER } from "../lib/auth-constant";
 import { UserI } from "../types/authTypes";
 import { jwtVerify, SignJWT, JWTPayload } from "jose";
 import { v4 as uuidv4 } from "uuid";
@@ -22,9 +24,9 @@ const generateTokens = async (user: UserI) => {
   // sign in access token
   const accessToken = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
-    .setIssuer("sreevasam-app")
-    .setAudience("sreevasam-users")
-    .setExpirationTime("3h")
+    .setIssuer(JWT_ISSUER)
+    .setAudience(JWT_AUDIENCE)
+    .setExpirationTime(ACCESS_TOKEN_EXPIRY_TIME)
     // .setExpirationTime("1m")
     .setIssuedAt()
     .sign(secret);
@@ -32,8 +34,8 @@ const generateTokens = async (user: UserI) => {
   const refreshTokenId = uuidv4(); // unique ID for tracking in DB
   const refreshToken = await new SignJWT({ id, refreshTokenId })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
-    .setIssuer("sreevasam-app")
-    .setAudience("sreevasam-users")
+    .setIssuer(JWT_ISSUER)
+    .setAudience(JWT_AUDIENCE)
     .setExpirationTime("7d")
     .setIssuedAt()
     .sign(secret);
@@ -42,8 +44,8 @@ const generateTokens = async (user: UserI) => {
 
 const verifyToken = async (token: string): Promise<JWTPayload> => {
   const { payload } = await jwtVerify(token, secret, {
-    issuer: "sreevasam-app",
-    audience: "sreevasam-users",
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
     algorithms: ["HS256"],
   });
   return payload;

@@ -13,9 +13,12 @@ axiosClient.interceptors.response.use(
   (response) => response, // ✅ just pass through successful responses
   async (error) => {
     const originalRequest = error.config;
-    console.log(error, "axios error");
     // 1️⃣ Check if token expired (401)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      error.response?.data?.code === "TOKEN_EXPIRED" &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
       // 2️⃣ If another refresh already happening → queue the request

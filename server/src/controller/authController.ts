@@ -66,8 +66,7 @@ const login = asyncHandler(
     if (error) {
       winstonLogger.warn("Validation error", error.details);
       return res.status(400).json({
-        message: "Validation failed",
-        details: error.details.map((d) => d.message),
+        message: error.details.map((d) => d.message),
       });
     }
     // 2. validate user email in the db and validate user password
@@ -91,7 +90,6 @@ const login = asyncHandler(
       name: user.name ?? "",
     };
     const { accessToken, refreshToken } = await generateTokens(userInfo);
-
     // 4. set the tokens to the response
     await setTokens(res, accessToken, refreshToken, userInfo.id);
     res.status(200).json({ message: "Login Successful", user: userInfo });
