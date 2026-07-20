@@ -1,5 +1,4 @@
 import config from "../config/envConfig";
-import { ACCESS_TOKEN_EXPIRY_TIME } from "../constants/time";
 import { JWT_AUDIENCE, JWT_ISSUER } from "../lib/auth-constant";
 import { UserI } from "../types/authTypes";
 import { jwtVerify, SignJWT, JWTPayload } from "jose";
@@ -26,7 +25,7 @@ const generateTokens = async (user: UserI) => {
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuer(JWT_ISSUER)
     .setAudience(JWT_AUDIENCE)
-    .setExpirationTime(ACCESS_TOKEN_EXPIRY_TIME)
+    .setExpirationTime("1h")
     // .setExpirationTime("1m")
     .setIssuedAt()
     .sign(secret);
