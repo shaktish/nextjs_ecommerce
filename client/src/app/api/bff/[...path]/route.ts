@@ -45,11 +45,15 @@ async function proxy(
     headers: request.headers,
     body: body,
   });
+  const headers = new Headers(response.headers);
+  headers.delete("content-encoding");
+  headers.delete("content-length");
+  headers.delete("transfer-encoding");
 
   const nextResponse = new NextResponse(response.body, {
     status: response.status,
     statusText: response.statusText,
-    headers: response.headers,
+    headers,
   });
 
   setCookies?.forEach((cookie) => {

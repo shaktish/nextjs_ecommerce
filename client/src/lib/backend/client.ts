@@ -18,6 +18,10 @@ export async function backendClient(
 
   async function execute(cookieHeader: string) {
     const headers = new Headers(options.headers);
+
+    headers.delete("accept-encoding");
+    headers.delete("host");
+    headers.delete("content-length");
     headers.set("Cookie", cookieHeader);
     return fetch(url, {
       ...options,
