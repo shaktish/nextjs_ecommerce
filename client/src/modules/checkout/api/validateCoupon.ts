@@ -1,9 +1,10 @@
+import bffFetch from "@/lib/bffClient";
+
 async function validateCoupon(code: string) {
-  const response = await fetch(
-    `/api/coupon/validate/${encodeURIComponent(code)}`,
+  const response = await bffFetch(
+    `/coupon/validate/${encodeURIComponent(code)}`,
     {
       method: "GET",
-      credentials: "include",
     },
   );
 

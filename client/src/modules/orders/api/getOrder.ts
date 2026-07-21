@@ -1,3 +1,5 @@
+import bffFetch from "@/lib/bffClient";
+
 type GetOrdersParams = {
   page?: number;
   limit?: number;
@@ -14,9 +16,8 @@ export async function getOrders(params: GetOrdersParams) {
   if (params.limit) {
     query.set("limit", String(params.limit));
   }
-  const response = await fetch(`/api/order?${query.toString()}`, {
-    credentials: "include",
-  });
+
+  const response = await bffFetch(`/order?${query.toString()}`);
 
   if (!response.ok) {
     throw new Error("Failed to get the orders");

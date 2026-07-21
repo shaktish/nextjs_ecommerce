@@ -1,10 +1,11 @@
+import bffFetch from "@/lib/bffClient";
 import { addressSchema } from "@/schemas/addressSchema";
 import z from "zod";
 
 type AddressFormData = z.infer<typeof addressSchema>;
 
 async function updateAddress(id: string, data: AddressFormData) {
-  const response = await fetch(`/api/address/${id}`, {
+  const response = await bffFetch(`/address/${id}`, {
     method: "PATCH",
     credentials: "include",
     headers: {

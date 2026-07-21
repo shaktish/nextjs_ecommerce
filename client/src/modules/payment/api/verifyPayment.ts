@@ -1,14 +1,15 @@
+import bffFetch from "@/lib/bffClient";
+
 export async function verifyPayment(data: {
   razorpayOrderId: string;
   razorpayPaymentId: string;
   razorpay_signature: string;
 }) {
-  const response = await fetch(`api/payment/verify`, {
+  const response = await bffFetch(`/payment/verify`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include",
     body: JSON.stringify(data),
   });
 

@@ -1,7 +1,8 @@
+import { backendClient } from "@/lib/backend/client";
+
 async function getProductList(queryParams: URLSearchParams) {
-  // await new Promise((resolve) => setTimeout(resolve, 2000));
-  const response = await fetch(
-    `${process.env.API_URL}/api/product/get-products?${queryParams.toString()}`,
+  const { response } = await backendClient(
+    `/api/product/get-products?${queryParams.toString()}`,
     {
       next: {
         revalidate: 3600,

@@ -1,5 +1,7 @@
+import { backendClient } from "@/lib/backend/client";
+
 export async function getProductLookup() {
-  const response = await fetch(`${process.env.API_URL}/api/product/lookup`, {
+  const { response } = await backendClient(`/api/product/lookup`, {
     next: {
       revalidate: 3600,
     },

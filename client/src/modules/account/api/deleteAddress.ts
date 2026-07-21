@@ -1,7 +1,8 @@
+import bffFetch from "@/lib/bffClient";
+
 async function deleteAddress({ id }: { id: string }) {
-  const response = await fetch(`/api/address/${id}`, {
+  const response = await bffFetch(`/address/${id}`, {
     method: "DELETE",
-    credentials: "include",
   });
 
   if (!response.ok) {

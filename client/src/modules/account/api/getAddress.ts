@@ -1,18 +1,15 @@
-import { cookies } from "next/headers";
+import { backendClient } from "@/lib/backend/client";
 
-async function getAddress() {
-  const cookieStore = await cookies();
-  const response = await fetch(`${process.env.API_URL}/api/address`, {
-    cache: "no-store",
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-  });
+export default async function getAddress() {
+  const { response } = await backendClient("/api/address");
+
+  if (response.status === 404) {
+    return [];
+  }
 
   if (!response.ok) {
-    throw new Error("Error fetching address list");
+    throw new Error("Unable to fetch addresses");
   }
+
   return response.json();
 }
-
-export default getAddress;

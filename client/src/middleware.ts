@@ -1,87 +1,66 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const publicRoutes = ["/auth/login", "/auth/register", "/collections"];
 const adminRoutes = ["/admin"];
-const userRoutes = ["/home"];
+const protectedRoutes = [
+  ...adminRoutes,
+  "/account",
+  "/checkout",
+  "/orders",
+  "/cart",
+];
+
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
-const API_URL = process.env.API_URL!;
+type JwtPayload = {
+  role: "Admin" | "User";
+};
 
 export async function middleware(request: NextRequest) {
-  console.log("middleware is running");
+  console.log("Middleware START");
   const { pathname } = request.nextUrl;
-
-  // 1️⃣ Allow public routes
-  const isPublicRoute =
-    pathname === "/" ||
-    publicRoutes.some((route) => pathname.startsWith(route));
-
-  if (isPublicRoute) {
-    return NextResponse.next();
-  }
-
+  const isProtected = protectedRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
+  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
 
-  // 2️⃣ No access token → redirect to login
+  // 1. Public routes
+  if (!isProtected) {
+    return NextResponse.next();
+  }
+
+  // 2. Must have refresh token
   if (!refreshToken) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
-  if (accessToken) {
-    // 3️⃣ Verify token
-    try {
-      const { payload } = await jwtVerify(accessToken, JWT_SECRET);
-      const role = (payload as any).role;
-      const isAdmin = role === "Admin";
-
-      if (pathname === "/") {
-        if (isAdmin) {
-          return NextResponse.redirect(new URL("/admin", request.url));
-        }
-        return NextResponse.next();
-        // return NextResponse.redirect(new URL("/home", request.url));
-      }
-      // handle role-based redirects
-      if (isAdmin && userRoutes.some((r) => pathname.startsWith(r))) {
-        return NextResponse.redirect(new URL("/admin", request.url));
-      }
-
-      if (!isAdmin && adminRoutes.some((r) => pathname.startsWith(r))) {
-        return NextResponse.redirect(new URL("/", request.url));
-      }
-
-      return NextResponse.next();
-    } catch (e) {
-      console.error("JWT VERIFY FAILED", e);
-
-      // fall through to refresh flow
-    }
+  // 3. No access token? backendClient will refresh.
+  if (!accessToken) {
+    return NextResponse.next();
   }
 
+  // 4. Only admin pages need role verification
+  if (!isAdminRoute) {
+    return NextResponse.next();
+  }
+
+  // verify token to get role
   try {
-    console.log("going to request accessToken as refreshToken is still valid");
-    // IMPORTANT: Must call backend using FULL URL, not "/api"
-    const refreshResponse = await fetch(`${API_URL}/api/auth/refreshToken`, {
-      method: "POST",
-      headers: {
-        Cookie: request.headers.get("cookie") || "",
-      },
-    });
-    console.log("REFRESH STATUS:", refreshResponse.status);
-    if (refreshResponse.ok) {
-      // Grab Set-Cookie headers and return them to browser
-      const res = NextResponse.next();
-      const setCookies = refreshResponse.headers.getSetCookie();
-      setCookies.forEach((cookie) => res.headers.append("set-cookie", cookie));
+    const { payload } = await jwtVerify(accessToken, JWT_SECRET);
+    const { role } = payload as JwtPayload;
 
-      console.log("Refresh success — proceeding to page");
-      return res;
+    if (role !== "Admin") {
+      return NextResponse.redirect(new URL("/", request.url));
     }
-  } catch (err) {
-    console.log("Refresh token request failed:", err);
+    return NextResponse.next();
+  } catch {
+    if (process.env.NODE_ENV === "development") {
+      console.debug("Access token invalid or expired.");
+    }
+    // fall through to refresh flow
+    return NextResponse.next();
   }
-  return NextResponse.redirect(new URL("/auth/login", request.url));
 }
 
 export const config = {

@@ -37,7 +37,7 @@ function AddressCard({ data }: AddressCard) {
         <div className="space-y-2">
           <div className="flex space-x-2">
             <p className="text-base font-semibold">{data.address}</p>
-            {data.isDefault && (
+            {data?.isDefault && (
               <Badge
                 variant="secondary"
                 className="bg-green-100 text-green-700 hover:bg-green-100"

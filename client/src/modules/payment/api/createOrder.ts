@@ -1,13 +1,14 @@
+import bffFetch from "@/lib/bffClient";
+
 export async function createOrder(data: {
   addressId: string;
   couponCode?: string;
 }) {
-  const response = await fetch(`api/payment/createOrder`, {
+  const response = await bffFetch(`/payment/createOrder`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include",
     body: JSON.stringify(data),
   });
 

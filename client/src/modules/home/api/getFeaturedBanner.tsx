@@ -1,7 +1,8 @@
 import { HOME_BANNER } from "@/constant/invalidateCacheConstant";
+import { backendClient } from "@/lib/backend/client";
 
 export async function getFeaturedBanner() {
-  const response = await fetch(`${process.env.API_URL}/api/feature-banner`, {
+  const { response } = await backendClient(`/api/feature-banner`, {
     next: {
       revalidate: 3600,
       tags: [HOME_BANNER],

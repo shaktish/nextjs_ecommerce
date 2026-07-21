@@ -8,14 +8,18 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const nextConfig: NextConfig = {
   /* config options here */
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${process.env.API_URL}/api/:path*`, // your backend
-      },
-    ];
-  },
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: "/api/bff/:path*",
+  //       destination: "/api/bff/:path*",
+  //     },
+  //     {
+  //       source: "/api/:path*",
+  //       destination: `${process.env.API_URL}/api/:path*`, // your backend
+  //     },
+  //   ];
+  // },
   images: {
     remotePatterns: [
       {

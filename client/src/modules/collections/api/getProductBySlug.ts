@@ -1,7 +1,7 @@
-async function getProductBySlug(slug: string) {
-  //   await new Promise((r) => setTimeout(r, 5000));
+import { backendClient } from "@/lib/backend/client";
 
-  const response = await fetch(`${process.env.API_URL}/api/product/${slug}`, {
+async function getProductBySlug(slug: string) {
+  const { response } = await backendClient(`/api/product/${slug}`, {
     next: {
       tags: [`product-${slug}`],
     },

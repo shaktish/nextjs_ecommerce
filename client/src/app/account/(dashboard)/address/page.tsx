@@ -16,7 +16,7 @@ async function UserAddress() {
         </Button>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {data.length === 0 && <p>No address found</p>}
+        {data?.length === 0 && <p>No address found</p>}
         {data?.map((address: Address) => (
           <AddressCard key={address.id} data={address} />
         ))}

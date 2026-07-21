@@ -1,13 +1,7 @@
-import { cookies } from "next/headers";
+import { backendClient } from "@/lib/backend/client";
 
 async function getAddressById(id: string) {
-  const cookieStore = await cookies();
-  const response = await fetch(`${process.env.API_URL}/api/address/${id}`, {
-    cache: "no-store",
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-  });
+  const { response } = await backendClient(`/api/address/${id}`);
 
   if (!response.ok) {
     throw new Error("Error fetching address");

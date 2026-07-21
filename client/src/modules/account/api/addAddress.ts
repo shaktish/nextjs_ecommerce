@@ -1,12 +1,12 @@
+import bffFetch from "@/lib/bffClient";
 import { addressSchema } from "@/schemas/addressSchema";
 import z from "zod";
 
 type AddressFormData = z.infer<typeof addressSchema>;
 
 async function addAddress(data: AddressFormData) {
-  const response = await fetch(`/api/address`, {
+  const response = await bffFetch(`/address`, {
     method: "POST",
-    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
