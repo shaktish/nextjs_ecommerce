@@ -33,7 +33,7 @@ function AddressCard({
           Add a new address
         </Button>
       </div>
-      {data.length === 0 && (
+      {data?.length === 0 && (
         <div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
           <h3 className="text-lg font-semibold">No addresses found</h3>
           <p className="mt-2 text-sm text-muted-foreground">
