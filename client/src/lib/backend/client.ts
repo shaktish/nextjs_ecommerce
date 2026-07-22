@@ -11,11 +11,9 @@ export async function backendClient(
   path: string,
   options: RequestInit = {},
 ): Promise<BackendClientResponse> {
-  console.log("backendClient fetch");
   const cookieStore = await cookies();
-  console.log(path, "backend client ts file");
   const url = `${process.env.API_URL}${path}`;
-
+  console.log(url, "url - backend client");
   async function execute(cookieHeader: string) {
     const headers = new Headers(options.headers);
 
@@ -44,7 +42,6 @@ export async function backendClient(
 
   // Retry once
   response = await execute(cookieHeader);
-
   if (response.status === 401) {
     throw new Error();
   }

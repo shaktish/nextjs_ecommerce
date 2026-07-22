@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import AddressCard from "./AddressCard";
 import { useCartStore } from "@/store/useCartStore";
 import OrderSummary from "./OrderSummary";
-import { Button } from "@/components/ui/button";
 import CouponCard from "./CouponCard";
 import validateCoupon from "./api/validateCoupon";
 import { Separator } from "@/components/ui/separator";
@@ -17,10 +16,11 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface CheckoutContentProps {
-  data: Address[];
+  addressList: Address[];
+  addressError: string | null;
 }
 
-function CheckoutContent({ data }: CheckoutContentProps) {
+function CheckoutContent({ addressList, addressError }: CheckoutContentProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -35,8 +35,8 @@ function CheckoutContent({ data }: CheckoutContentProps) {
   const { items: cartItems } = useCartStore();
 
   useEffect(() => {
-    setSelectedAddress(data.find((item) => item.isDefault)?.id ?? null);
-  }, [data]);
+    setSelectedAddress(addressList?.find((item) => item.isDefault)?.id ?? null);
+  }, [addressList]);
 
   const couponHandler = async () => {
     if (couponInput) {
@@ -44,15 +44,26 @@ function CheckoutContent({ data }: CheckoutContentProps) {
         return {
           ...prev,
           loading: true,
+          valid: false,
+          message: "",
         };
       });
-      const res = await validateCoupon(couponInput);
-      setCouponState({
-        loading: false,
-        message: res.message,
-        percentage: res.percentage,
-        valid: res.success,
-      });
+      try {
+        const res = await validateCoupon(couponInput);
+        setCouponState({
+          loading: false,
+          message: res.message,
+          percentage: res.percentage,
+          valid: res.success,
+        });
+      } catch (e) {
+        setCouponState({
+          loading: false,
+          message: e instanceof Error ? e.message : "Something went wrong",
+          percentage: 0,
+          valid: false,
+        });
+      }
     }
   };
 
@@ -102,9 +113,10 @@ function CheckoutContent({ data }: CheckoutContentProps) {
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="w-full lg:w-[70%] space-y-6">
           <AddressCard
-            data={data}
+            data={addressList}
             selectedAddress={selectedAddress}
             setSelectedAddress={setSelectedAddress}
+            addressError={addressError}
           />
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-[70%] space-y-6">
@@ -115,15 +127,6 @@ function CheckoutContent({ data }: CheckoutContentProps) {
                 setCouponInput={setCouponInput}
                 removeCouponHandler={removeCouponHandler}
               />
-            </div>
-
-            <div className="w-full lg:w-[30%] space-y-6">
-              <Button
-                onClick={() => createOrderHandler()}
-                disabled={!selectedAddress}
-              >
-                Proceed to Payment
-              </Button>
             </div>
           </div>
         </div>

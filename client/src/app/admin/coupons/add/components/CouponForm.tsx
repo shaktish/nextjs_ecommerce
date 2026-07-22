@@ -13,11 +13,11 @@ import { Spinner } from "@/components/ui/spinner";
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCouponStore } from "@/store/useCouponStore";
-import { toast } from "sonner";
 import {
   inputClass,
   labelClass,
 } from "@/modules/admin/products/add/utils/className";
+import { toast } from "sonner";
 
 interface FormState {
   code: string;

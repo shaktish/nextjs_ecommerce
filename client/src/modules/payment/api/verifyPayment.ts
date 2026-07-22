@@ -1,11 +1,12 @@
-import bffFetch from "@/lib/bffClient";
+"use server";
+import { backendClient } from "@/lib/backend/client";
 
 export async function verifyPayment(data: {
   razorpayOrderId: string;
   razorpayPaymentId: string;
   razorpay_signature: string;
 }) {
-  const response = await bffFetch(`/payment/verify`, {
+  const { response } = await backendClient(`/api/payment/verify`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -14,7 +15,8 @@ export async function verifyPayment(data: {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to create the order");
+    const error = await response.json();
+    throw new Error(error.message ?? "Payment verification failed");
   }
-  return response;
+  return response.json();
 }

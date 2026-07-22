@@ -1,7 +1,8 @@
-import bffFetch from "@/lib/bffClient";
+"use server";
+import { backendClient } from "@/lib/backend/client";
 
 async function deleteAddress({ id }: { id: string }) {
-  const response = await bffFetch(`/address/${id}`, {
+  const { response } = await backendClient(`/api/address/${id}`, {
     method: "DELETE",
   });
 

@@ -32,21 +32,20 @@ function PaymentContent() {
         currency: res.currency,
         order_id: res.razorpayOrderId,
         handler: async function (response: RazorpaySuccessResponse) {
-          console.log(response, "res razor");
           try {
-            const res = await verifyPayment({
+            setLoading(true);
+            await verifyPayment({
               razorpay_signature: response.razorpay_signature,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpayOrderId: response.razorpay_order_id,
             });
+            setLoading(false);
 
-            if (res.status === 200) {
-              toast.success("Order placed successfully!");
-              useCartStore.getState().clearCart();
-
-              router.replace("/account/orders");
-            }
+            toast.success("Order placed successfully!");
+            useCartStore.getState().clearCart();
+            router.replace("/account/orders");
           } catch (e) {
+            setLoading(false);
             if (e instanceof Error) {
               toast.error(e.message);
             } else {

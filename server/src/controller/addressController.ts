@@ -13,9 +13,14 @@ const getAddress = asyncHandler(
       where: {
         userId,
       },
-      orderBy: {
-        updatedAt: "desc",
-      },
+      orderBy: [
+        {
+          isDefault: "desc",
+        },
+        {
+          updatedAt: "desc",
+        },
+      ],
     });
 
     if (addresses.length === 0) {
