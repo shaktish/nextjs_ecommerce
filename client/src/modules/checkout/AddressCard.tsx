@@ -33,6 +33,14 @@ function AddressCard({
           Add a new address
         </Button>
       </div>
+      {data.length === 0 && (
+        <div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+          <h3 className="text-lg font-semibold">No addresses found</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You haven't added a shipping address yet.
+          </p>
+        </div>
+      )}
       {addressError ? (
         <div className="flex-1 rounded-md border border-destructive/30 bg-destructive/5 p-4">
           <p className="font-medium">Unable to load your addresses.</p>
