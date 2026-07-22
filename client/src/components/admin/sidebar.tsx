@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
+import logout from "@/modules/auth/api/logout";
 
 const menuItems = [
   {
@@ -61,7 +61,6 @@ interface SidebarProps {
 
 const AdminSidebar = ({ isOpen, toggle }: SidebarProps) => {
   const router = useRouter();
-  const { logout } = useAuthStore();
   const handleLogout = async () => {
     await logout();
     router.push("/auth/login");
