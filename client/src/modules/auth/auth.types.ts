@@ -1,8 +1,8 @@
-export type RegisterUserFormData {
+export type RegisterUserFormData = {
   name: string;
   email: string;
   password: string;
-}
+};
 
 export type LoginUserFormData = Omit<RegisterUserFormData, "name">;
 
