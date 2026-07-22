@@ -1,31 +1,10 @@
-import axiosClient from "@/utils/axios";
-import axios from "axios";
+import { AuthUser } from "@/modules/auth/auth.types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type User = {
-  id: string;
-  name: string | null;
-  email: string;
-  role: "User" | "Admin";
-};
-
-interface RegisterUserFormData {
-  name: string;
-  email: string;
-  password: string;
-}
-
-type LoginUserFormData = Omit<RegisterUserFormData, "name">;
-
 type AuthStore = {
-  user: User | null;
-  isLoading: boolean;
-  error: string | null;
-  register: (userFormData: RegisterUserFormData) => Promise<string | null>;
-  login: (userFormData: LoginUserFormData) => Promise<User | null>;
-  logout: () => Promise<boolean>;
-  refreshAccessToken: () => Promise<boolean>;
+  user: AuthUser | null;
+  setUser: (user: AuthUser | null) => void;
 };
 
 export const useAuthStore = create<AuthStore>()(
@@ -34,86 +13,10 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       isLoading: false,
       error: null,
-      register: async (userFormData: RegisterUserFormData) => {
-        set({ isLoading: true, error: null });
-
-        try {
-          const response = await axiosClient.post("/auth/register", {
-            ...userFormData,
-          });
-          set({
-            isLoading: false,
-          });
-          console.log(response, "response");
-          return response.data.data.id ?? null;
-        } catch (e) {
-          console.log(e, "e");
-          const errorMessage = axios.isAxiosError(e)
-            ? e?.response?.data?.message
-            : "Registration Failed";
-          set({ isLoading: false, error: errorMessage });
-          return null;
-        }
-      },
-      login: async (userFormData: LoginUserFormData) => {
-        set({ isLoading: true, error: null });
-        let response = null;
-        try {
-          response = await axiosClient.post("/auth/login", {
-            ...userFormData,
-          });
-          set({
-            isLoading: false,
-            user: response.data.user,
-          });
-          return response.data.user;
-        } catch (e) {
-          let message = "Login Failed";
-          if (axios.isAxiosError(e)) {
-            message = e.response?.data?.message;
-          }
-          set({
-            isLoading: false,
-            error: message,
-          });
-          return null;
-        }
-      },
-      logout: async () => {
-        set({ isLoading: true, error: null });
-        try {
-          await axiosClient.post("/auth/logout");
-          set({ isLoading: false, user: null });
-          return true;
-        } catch (e) {
-          console.error("Logout Error:", e);
-          set({
-            isLoading: false,
-            error: axios.isAxiosError(e)
-              ? e?.response?.data?.error
-              : "Logout Failed",
-          });
-          return false;
-        }
-      },
-      refreshAccessToken: async () => {
-        set({ isLoading: true, error: null });
-        try {
-          const response = await axiosClient.post("/auth/refreshToken");
-          set({
-            isLoading: false,
-          });
-          return !!response.data?.success;
-        } catch (e) {
-          console.error("Refresh Token Error:", e);
-          set({
-            isLoading: false,
-            error: axios.isAxiosError(e)
-              ? e?.response?.data?.error
-              : "Logout Failed",
-          });
-          return false;
-        }
+      setUser: (data: AuthUser | null) => {
+        set({
+          user: data,
+        });
       },
     }),
     {

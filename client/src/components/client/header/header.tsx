@@ -6,10 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader, ShoppingCart, User } from "lucide-react";
 import { Button } from "../../ui/button";
-
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePathname } from "next/navigation";
-
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -23,10 +21,13 @@ import ThemeToggle from "./components/ThemeToggle";
 import UserLoginButton from "./components/UserLoginButton";
 import { useStoreHydrated } from "@/hooks/useStoreHydrated";
 import { navItems } from "@/constant/navigation";
+import logout from "@/modules/auth/api/logout";
+import { toast } from "sonner";
 
 const Header = () => {
   const [open, setOpen] = useState(false);
-  const { logout, user, isLoading: isAuthLoading } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const { user, setUser } = useAuthStore();
   const hydrated = useStoreHydrated();
 
   const pathname = usePathname();
@@ -41,10 +42,19 @@ const Header = () => {
   };
 
   const logoutHandler = async () => {
-    await logout();
-    setOpen(false);
-    setMobileView("menu");
-    router.push("/auth/login");
+    try {
+      setLoading(true);
+      await logout();
+      setUser(null);
+      setOpen(false);
+      setMobileView("menu");
+      router.push("/auth/login");
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : "Failed to logout";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isActive = (itemPath: string) => {
@@ -100,7 +110,7 @@ const Header = () => {
           {
             <>
               <div className="hidden lg:flex items-center space-x-4">
-                {isAuthLoading && <Loader />}
+                {loading && <Loader />}
                 {user && hasFetchedCartItems && (
                   <>
                     <div
@@ -138,7 +148,7 @@ const Header = () => {
                     </DropdownMenu>
                   </>
                 )}
-                {!user && !isAuthLoading && <UserLoginButton />}
+                {!user && !loading && <UserLoginButton />}
                 <div>
                   <ThemeToggle isMobile={false} />
                 </div>

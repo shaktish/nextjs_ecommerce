@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ThemeToggleProps {
   isMobile?: boolean;
@@ -23,14 +24,19 @@ function ThemeToggle({ isMobile }: ThemeToggleProps) {
     localStorage.setItem("theme", newDark ? "dark" : "light");
   };
   return (
-    <button
+    <Button
+      variant={"ghost"}
       aria-label="toggle theme"
       onClick={toggleTheme}
-      className={`cursor-pointer  flex items-center gap-1 ${isMobile ? "w-full" : ""}`}
+      className={`cursor-pointer justify-start  flex items-center gap-1 ${isMobile ? "w-full" : ""}`}
     >
-      {dark ? <Sun size={20} /> : <Moon size={20} />}
+      {dark ? (
+        <Sun className="mr-3 h-4 w-4" />
+      ) : (
+        <Moon className="mr-3 h-4 w-4" />
+      )}
       {isMobile ? `Switch to ${dark ? "Light" : "Dark"} Mode` : null}
-    </button>
+    </Button>
   );
 }
 

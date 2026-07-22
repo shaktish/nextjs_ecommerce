@@ -6,14 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
+import login from "@/modules/auth/api/login";
 
 function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const { setUser, user } = useAuthStore();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -27,22 +29,20 @@ function LoginPage() {
     });
   };
 
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await login(formData);
-    if (response?.id) {
+    try {
+      setLoading(true);
+      const response = await login(formData);
+      setUser(response.user);
       toast.success("Login Successful");
-      if (response.role === "Admin") {
-        router.push("/admin");
-      } else {
-        router.push("/");
-      }
+      router.push(response.user.role === "Admin" ? "/admin" : "/");
+    } catch (e) {
+      const errorMessage =
+        e instanceof Error ? e.message : "Unable to register";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -71,7 +71,7 @@ function LoginPage() {
               required
               className="bg-[#ffede1]"
               onChange={handleOnInputChange}
-              value={formData.email}
+              value={formData?.email}
             />
           </div>
           <div className="space-y-1">
@@ -90,9 +90,9 @@ function LoginPage() {
           <Button
             type="submit"
             className="w-full bg-black text-white hover:bg-black transition-colors mt-4"
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? "Loading..." : "Login"}
+            {loading ? "Loading..." : "Login"}
           </Button>
           <p className="text-center text-[#353d56] text-sm mt-2">
             New here

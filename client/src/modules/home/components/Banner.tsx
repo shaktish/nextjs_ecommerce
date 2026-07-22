@@ -27,11 +27,14 @@ const Banner = ({ banners }: BannerProps) => {
           banners?.map((banner, index) => {
             return (
               <div className="relative min-w-full h-full" key={banner.id}>
-                <Link href={banner.redirectUrl}>
+                <Link
+                  href={banner.redirectUrl}
+                  className="relative block h-full w-full"
+                >
                   <Image
                     src={banner.url}
                     alt={`Banner ${index}`}
-                    className="absolute inset-0 w-full h-full object-cover object-left"
+                    className="object-cover object-left"
                     priority
                     fill
                   />
