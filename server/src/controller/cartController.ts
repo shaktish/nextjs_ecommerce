@@ -216,7 +216,10 @@ const getCart = asyncHandler(
     return res.status(200).json({
       items: updatedItems,
       cartId: cart?.id,
-      subtotal: updatedItems?.length > 0 ? getSummaryTotals(updatedItems) : 0,
+      subtotal:
+        updatedItems && updatedItems?.length > 0
+          ? getSummaryTotals(updatedItems)
+          : 0,
     });
   },
 );
