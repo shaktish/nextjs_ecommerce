@@ -204,8 +204,7 @@ const getCart = asyncHandler(
         },
       },
     });
-    const updatedItems = cart?.items?.map((item) => mapCartItem(item));
-    winstonLogger.info("updatedItems", updatedItems);
+    const updatedItems = cart?.items?.map((item) => mapCartItem(item)) ?? [];
 
     winstonLogger.info({
       route: req.originalUrl,
@@ -216,10 +215,7 @@ const getCart = asyncHandler(
     return res.status(200).json({
       items: updatedItems,
       cartId: cart?.id,
-      subtotal:
-        updatedItems && updatedItems?.length > 0
-          ? getSummaryTotals(updatedItems)
-          : 0,
+      subtotal: updatedItems.length > 0 ? getSummaryTotals(updatedItems) : 0,
     });
   },
 );
