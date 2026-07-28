@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { createOrder } from "../payment/api/createOrder";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 
 interface CheckoutContentProps {
   addressList: Address[];
@@ -119,7 +120,7 @@ function CheckoutContent({ addressList, addressError }: CheckoutContentProps) {
             addressError={addressError}
           />
           <div className="flex flex-col lg:flex-row gap-8">
-            <div className="w-full lg:w-[70%] space-y-6">
+            <div className="w-full lg:w-[100%] space-y-6">
               <CouponCard
                 couponState={couponState}
                 couponHandler={couponHandler}
@@ -142,6 +143,14 @@ function CheckoutContent({ addressList, addressError }: CheckoutContentProps) {
                 subtotal={subtotal}
                 total={total}
               />
+            </div>
+            <div className="w-full mt-4">
+              <Button
+                onClick={() => createOrderHandler()}
+                disabled={!selectedAddress}
+              >
+                Proceed to Payment
+              </Button>
             </div>
           </div>
         </div>
