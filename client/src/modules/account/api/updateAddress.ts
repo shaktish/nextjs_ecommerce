@@ -1,13 +1,13 @@
 "use server";
 
-import { backendClient } from "@/lib/backend/client";
+import { withServerActionAuth } from "@/lib/auth/withServerActionAuth";
 import { addressSchema } from "@/schemas/addressSchema";
 import z from "zod";
 
 type AddressFormData = z.infer<typeof addressSchema>;
 
 async function updateAddress(id: string, data: AddressFormData) {
-  const { response } = await backendClient(`/api/address/${id}`, {
+  const response = await withServerActionAuth(`/api/address/${id}`, {
     method: "PATCH",
     credentials: "include",
     headers: {

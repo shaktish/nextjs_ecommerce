@@ -1,18 +1,27 @@
 "use server";
-import { backendClient } from "@/lib/backend/client";
 import { RegisterUserFormData } from "../auth.types";
-import { throwIfNotOk } from "@/helper/api/throwIfNotOkay";
+import { withServerActionAuth } from "@/lib/auth/withServerActionAuth";
 
 async function register(data: RegisterUserFormData) {
-  const { response } = await backendClient(`/api/auth/register`, {
+  const response = await withServerActionAuth(`/api/auth/register`, {
+    skipAuth: true,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   });
-  await throwIfNotOk(response, "Failed to register your profile");
-  return response.json();
+  const result = await response.json();
+  if (response.status !== 201) {
+    return {
+      success: false,
+      message: result.message,
+    };
+  }
+  return {
+    success: true,
+    data: result,
+  };
 }
 
 export default register;

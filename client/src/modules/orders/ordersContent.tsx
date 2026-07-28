@@ -69,6 +69,18 @@ function ListOrders() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">My Orders</h1>
+      {data?.orders?.length === 0 && (
+        <div className="flex justify-center py-16">
+          <div className="w-full max-w-md rounded-xl border bg-card p-8 text-center shadow-sm">
+            <div className="mb-4 text-5xl">📦</div>
+            <h2 className="text-xl font-semibold">No Orders Yet</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Looks like you haven't placed any orders. Once you do, they'll
+              appear here.
+            </p>
+          </div>
+        </div>
+      )}
 
       {data?.orders?.map((order: Order) => (
         <div
@@ -173,13 +185,15 @@ function ListOrders() {
           </div>
         </div>
       ))}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={data?.total || 0}
-        onGoToPage={goToPageHandler}
-        onNextPage={nextPageHandler}
-        onPrevPage={prevPageHandler}
-      />
+      {data?.orders?.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={data?.total || 0}
+          onGoToPage={goToPageHandler}
+          onNextPage={nextPageHandler}
+          onPrevPage={prevPageHandler}
+        />
+      )}
     </div>
   );
 }

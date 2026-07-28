@@ -1,12 +1,10 @@
 "use server";
-import { backendClient } from "@/lib/backend/client";
-import { throwIfNotOk } from "@/helper/api/throwIfNotOkay";
+import { withServerActionAuth } from "@/lib/auth/withServerActionAuth";
 
 async function logout() {
-  const { response } = await backendClient(`/api/auth/logout`, {
+  const response = await withServerActionAuth(`/api/auth/logout`, {
     method: "POST",
   });
-  await throwIfNotOk(response, "Failed to logout");
   return response.json();
 }
 

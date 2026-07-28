@@ -204,7 +204,7 @@ const getCart = asyncHandler(
         },
       },
     });
-    const updatedItems = cart?.items.map((item) => mapCartItem(item));
+    const updatedItems = cart?.items?.map((item) => mapCartItem(item));
     winstonLogger.info("updatedItems", updatedItems);
 
     winstonLogger.info({
@@ -216,7 +216,7 @@ const getCart = asyncHandler(
     return res.status(200).json({
       items: updatedItems,
       cartId: cart?.id,
-      subtotal: getSummaryTotals(updatedItems),
+      subtotal: updatedItems?.length > 0 ? getSummaryTotals(updatedItems) : 0,
     });
   },
 );

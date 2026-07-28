@@ -94,13 +94,13 @@ const validateCoupon = asyncHandler(
     const coupon = await prisma.coupon.findUnique({ where: { code } });
 
     if (!coupon) {
-      throw new AppError("Invalid coupon", 404);
+      throw new AppError("Invalid coupon", 200);
     }
     if (coupon.endDate < new Date()) {
-      throw new AppError("Coupon has expired", 400);
+      throw new AppError("Coupon has expired", 200);
     }
     if (coupon.usageCount >= coupon.usageLimit) {
-      throw new AppError("Coupon usage limit reached", 409);
+      throw new AppError("Coupon usage limit reached", 200);
     }
 
     return res.status(200).json({

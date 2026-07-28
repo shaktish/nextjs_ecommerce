@@ -1,8 +1,8 @@
 "use server";
-import { backendClient } from "@/lib/backend/client";
+import { withServerActionAuth } from "@/lib/auth/withServerActionAuth";
 
 async function deleteAddress({ id }: { id: string }) {
-  const { response } = await backendClient(`/api/address/${id}`, {
+  const response = await withServerActionAuth(`/api/address/${id}`, {
     method: "DELETE",
   });
 

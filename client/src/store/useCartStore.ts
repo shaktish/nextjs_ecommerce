@@ -1,3 +1,4 @@
+import getCartItems from "@/modules/cart/api/getCartItems";
 import axiosClient from "@/utils/axios";
 import { create } from "zustand";
 
@@ -41,9 +42,9 @@ type CartStore = {
 export const useCartStore = create<CartStore>((set, get) => ({
   cartId: null,
   items: [],
+  subtotal: 0,
   isLoading: false,
   hasFetchedCartItems: false,
-  subtotal: 0,
   error: null,
   addToCart: async (data: { variantId: string; quantity: number }) => {
     set({ isLoading: true, error: null });
@@ -129,17 +130,16 @@ export const useCartStore = create<CartStore>((set, get) => ({
   getCartItems: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axiosClient.get("/cart", {
-        withCredentials: true,
-      });
+      const response = await getCartItems();
       set({
-        items: response.data?.items,
-        cartId: response.data?.cartId,
-        subtotal: response.data?.subtotal,
+        items: response?.items,
+        cartId: response?.cartId,
+        subtotal: response?.subtotal,
         isLoading: false,
         error: null,
       });
-    } catch (e: any) {
+    } catch (e) {
+      console.log(e, "e getCartItems error");
       set({
         isLoading: false,
         error: "Failed to getCart item",
@@ -162,5 +162,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
       });
     }
   },
-  clearCart: () => set({ items: [] }),
+  clearCart: () =>
+    set({
+      cartId: null,
+      items: [],
+      subtotal: 0,
+      error: null,
+      hasFetchedCartItems: false,
+    }),
 }));

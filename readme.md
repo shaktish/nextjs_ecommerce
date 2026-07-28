@@ -1,8 +1,17 @@
-# Full Stack E-Commerce Application
+## Overview
 
 Hello there! 👋
 
-This is a full-stack e-commerce application built using modern web technologies and scalable architecture patterns.
+This project is a production-style full-stack e-commerce application built with Next.js App Router and Express.js.
+
+The application demonstrates modern frontend and backend development practices including:
+
+- Server Components and Server Actions
+- JWT authentication with automatic token refresh
+- Next.js Backend-for-Frontend (BFF) pattern
+- Redis caching
+- Prisma ORM with PostgreSQL
+- Dockerized local development
 
 ## Tech Stack
 
@@ -59,9 +68,9 @@ Users can:
 ### Authentication & Security
 
 - JWT Authentication
-- Access Token & Refresh Token Strategy
-- HTTP-only Cookies
-- Role-Based Authorization
+- Automatic Access Token Refresh
+- HTTP-only Cookie Authentication
+- Backend-for-Frontend (BFF) Architecture
 - Protected Routes
 
 ### Backend Features
@@ -81,30 +90,164 @@ Users can:
 ## Architecture
 
 ```text
-┌─────────────┐
-│   Next.js   │
-│  Frontend   │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Express   │
-│   Backend   │
-└──────┬──────┘
-       │
- ┌─────┴─────┐
- ▼           ▼
-PostgreSQL  Redis
- (Docker)  (Docker)
+                Browser
+                   │
+                   ▼
+         Next.js App Router
+                   │
+     ┌─────────────┴─────────────┐
+     ▼                           ▼
+Server Components          Client Components
+     │                           │
+     ▼                           ▼
+Server Actions              bffFetch()
+     │                           │
+     └─────────────┬─────────────┘
+                   ▼
+         BFF Route Handlers
+                   │
+                   ▼
+            Express Backend
+             │            │
+             ▼            ▼
+       PostgreSQL       Redis
 ```
+
+## Authentication Architecture
+
+The application authenticates requests differently depending on where the code is executed. Each execution context has a dedicated entry point while sharing the same token refresh logic through `backendClient()`.
+
+### 1. Client Components
+
+Used for client-side data fetching.
+
+```text
+Client Component
+      │
+      ▼
+bffFetch()
+      │
+      ▼
+BFF Route Handler
+      │
+      ▼
+backendClient()
+      │
+      ▼
+Backend API
+```
+
+Responsibilities:
+
+- Routes all browser requests through the Next.js BFF.
+- Prevents the browser from calling the backend directly.
+- Automatically refreshes expired access tokens.
+- Forwards updated HTTP-only cookies back to the browser.
+- Redirects users to the login page when the refresh token has expired.
+
+---
+
+### 2. Server Components
+
+Used for server-side data fetching (SSR).
+
+```text
+Server Component
+      │
+      ▼
+withServerComponentAuth()
+      │
+      ▼
+backendClient()
+      │
+      ▼
+Backend API
+```
+
+Responsibilities:
+
+- Executes authenticated server-side requests.
+- Automatically refreshes expired access tokens.
+- Redirects users to the login page when the refresh token has expired.
+
+---
+
+### 3. Server Actions
+
+Used for authenticated mutations (POST, PUT, PATCH, DELETE).
+
+```text
+Server Action
+      │
+      ▼
+withServerActionAuth()
+      │
+      ▼
+backendClient()
+      │
+      ▼
+Backend API
+```
+
+Responsibilities:
+
+- Executes authenticated mutation requests.
+- Automatically refreshes expired access tokens.
+- Synchronizes any `Set-Cookie` headers returned by the backend with the browser.
+- Redirects users to the login page when the refresh token has expired.
+
+---
+
+### Shared Authentication Flow
+
+All authenticated requests eventually flow through `backendClient()`.
+
+```text
+                Client Component
+                       │
+                 bffFetch()
+                       │
+                       ▼
+               BFF Route Handler
+                       │
+                       ├────────────────────────────┐
+                       │                            │
+Server Component       │                  Server Action
+       │               │                         │
+       ▼               │                         ▼
+withServerComponentAuth()        withServerActionAuth()
+               \                 /
+                \               /
+                 ▼             ▼
+                 backendClient()
+                       │
+              Access token expired?
+                       │
+              Yes ─────┴───── No
+               │               │
+               ▼               ▼
+      Refresh access token   Return response
+               │
+               ▼
+      Retry original request
+               │
+               ▼
+         Return response
+```
+
+This architecture centralizes token refresh logic inside `backendClient()`, while each execution context handles its own authentication behavior:
+
+- **Client Components** → Uses the BFF and redirects on `AUTH_EXPIRED`.
+- **Server Components** → Redirects when `RefreshTokenExpiredError` is thrown.
+- **Server Actions** → Applies returned cookies and redirects when `RefreshTokenExpiredError` is thrown.
 
 ## Key Learnings
 
-- Next.js App Router
-- SSR, ISR, and caching strategies
-- Express.js API development
-- PostgreSQL and Prisma ORM
+- Next.js App Router architecture
+- Backend-for-Frontend (BFF) pattern
+- Server Components & Server Actions
+- Automatic JWT token refresh
+- Cookie-based authentication
+- Prisma ORM
 - Redis caching
-- JWT Authentication
-- Docker containerization
-- Full-stack application architecture
+- Dockerized development

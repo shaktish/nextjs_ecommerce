@@ -10,12 +10,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
-import login from "@/modules/auth/api/login";
 
 function LoginPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const { setUser, user } = useAuthStore();
+  const { login, isLoading } = useAuthStore();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -32,17 +30,13 @@ function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      setLoading(true);
       const response = await login(formData);
-      setUser(response.user);
       toast.success("Login Successful");
-      router.push(response.user.role === "Admin" ? "/admin" : "/");
+      router.push(response?.role === "Admin" ? "/admin" : "/");
     } catch (e) {
       const errorMessage =
         e instanceof Error ? e.message : "Unable to register";
       toast.error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
   return (
@@ -90,9 +84,9 @@ function LoginPage() {
           <Button
             type="submit"
             className="w-full bg-black text-white hover:bg-black transition-colors mt-4"
-            disabled={loading}
+            disabled={isLoading}
           >
-            {loading ? "Loading..." : "Login"}
+            {isLoading ? "Loading..." : "Login"}
           </Button>
           <p className="text-center text-[#353d56] text-sm mt-2">
             New here

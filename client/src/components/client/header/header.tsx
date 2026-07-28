@@ -21,13 +21,12 @@ import ThemeToggle from "./components/ThemeToggle";
 import UserLoginButton from "./components/UserLoginButton";
 import { useStoreHydrated } from "@/hooks/useStoreHydrated";
 import { navItems } from "@/constant/navigation";
-import logout from "@/modules/auth/api/logout";
 import { toast } from "sonner";
 
 const Header = () => {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { user, setUser } = useAuthStore();
+  const { user, logout, isLoading } = useAuthStore();
+  const { clearCart } = useCartStore();
   const hydrated = useStoreHydrated();
 
   const pathname = usePathname();
@@ -43,17 +42,14 @@ const Header = () => {
 
   const logoutHandler = async () => {
     try {
-      setLoading(true);
       await logout();
-      setUser(null);
       setOpen(false);
       setMobileView("menu");
+      clearCart();
       router.push("/auth/login");
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : "Failed to logout";
       toast.error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -66,14 +62,10 @@ const Header = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasFetchedCartItems) {
       getCartItems();
     }
-  }, [user?.id]);
-
-  if (!hydrated) {
-    return null;
-  }
+  }, [user?.id, hasFetchedCartItems, getCartItems]);
 
   return (
     <header className="sticky top-0 z-50 shadow-sm bg-background">
@@ -86,7 +78,6 @@ const Header = () => {
               width={100}
               height={100}
               className="cursor-pointer"
-              onClick={() => router.push("/")}
               priority
             />
           </Link>
@@ -110,45 +101,49 @@ const Header = () => {
           {
             <>
               <div className="hidden lg:flex items-center space-x-4">
-                {loading && <Loader />}
-                {user && hasFetchedCartItems && (
-                  <>
-                    <div
-                      className="relative cursor-pointer"
-                      onClick={() => router.push("/cart")}
-                    >
-                      <ShoppingCart />
-                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
-                        {items?.length || 0}
-                      </span>
+                <div className="w-32 flex justify-center">
+                  {isLoading || !hydrated ? (
+                    <Loader className="h-5 w-5 animate-spin" />
+                  ) : user ? (
+                    <div className="flex gap-4">
+                      <div
+                        className="relative cursor-pointer"
+                        onClick={() => router.push("/cart")}
+                      >
+                        <ShoppingCart />
+                        <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
+                          {items?.length || 0}
+                        </span>
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex items-center gap-1"
+                          >
+                            <User className="h-5 w-5" />
+                            <span>{user.name}</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => router.push("/account")}
+                          >
+                            Your Account
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={logoutHandler}>
+                            Logout
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex items-center gap-1"
-                        >
-                          <User className="h-5 w-5" />
-                          <span>{user.name}</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => router.push("/account")}
-                        >
-                          Your Account
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={logoutHandler}>
-                          Logout
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                )}
-                {!user && !loading && <UserLoginButton />}
+                  ) : (
+                    <UserLoginButton />
+                  )}
+                </div>
                 <div>
                   <ThemeToggle isMobile={false} />
                 </div>

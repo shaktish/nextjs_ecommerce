@@ -1,14 +1,18 @@
 import { backendClient } from "@/lib/backend/client";
+import withServerComponentAuth from "@/lib/auth/withServerComponentAuth";
 
-export default async function getAddress() {
-  const { response } = await backendClient("/api/address");
-  if (response.status === 404) {
-    throw new Error("Address not found");
-  }
+export default function getAddress() {
+  return withServerComponentAuth(async () => {
+    const { response } = await backendClient("/api/address");
 
-  if (!response.ok) {
-    throw new Error("Unable to fetch addresses");
-  }
+    if (response.status === 404) {
+      throw new Error("Address not found");
+    }
 
-  return response.json();
+    if (!response.ok) {
+      throw new Error("Unable to fetch addresses");
+    }
+
+    return response.json();
+  });
 }

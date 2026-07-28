@@ -1,18 +1,21 @@
 "use server";
-import { backendClient } from "@/lib/backend/client";
-import { throwIfNotOk } from "@/helper/api/throwIfNotOkay";
 import { LoginResponse, LoginUserFormData } from "../auth.types";
+import { withServerActionAuth } from "@/lib/auth/withServerActionAuth";
 
 async function login(data: LoginUserFormData): Promise<LoginResponse> {
-  const { response } = await backendClient(`/api/auth/login`, {
+  const response = await withServerActionAuth(`/api/auth/login`, {
+    skipAuth: true,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   });
-  await throwIfNotOk(response, "Failed to login");
-  return response.json();
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
+  return result;
 }
 
 export default login;

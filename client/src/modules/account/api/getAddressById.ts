@@ -1,14 +1,9 @@
 "use server";
-import { backendClient } from "@/lib/backend/client";
-import { cookies } from "next/headers";
+import { withServerActionAuth } from "@/lib/auth/withServerActionAuth";
 
 async function getAddressById(id: string) {
-  const cookieStore = await cookies();
-  const { response } = await backendClient(`/api/address/${id}`, {
+  const response = await withServerActionAuth(`/api/address/${id}`, {
     cache: "no-store",
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
   });
 
   if (!response.ok) {

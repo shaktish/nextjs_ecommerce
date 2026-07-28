@@ -1,3 +1,4 @@
+import { RefreshTokenExpiredError } from "@/errors/refreshTokenExpired";
 import { cookies } from "next/headers";
 
 export type RefreshResult = {
@@ -11,7 +12,7 @@ export async function refreshAccessToken(): Promise<RefreshResult> {
   const refreshToken = cookieStore.get("refreshToken")?.value;
 
   if (!refreshToken) {
-    throw new Error("Refresh token missing");
+    throw new RefreshTokenExpiredError("Refresh token missing");
   }
 
   const response = await fetch(`${process.env.API_URL}/api/auth/refreshToken`, {
@@ -22,7 +23,7 @@ export async function refreshAccessToken(): Promise<RefreshResult> {
   });
 
   if (!response.ok) {
-    throw new Error("Refresh token expired");
+    throw new RefreshTokenExpiredError();
   }
 
   const setCookies = response.headers.getSetCookie();

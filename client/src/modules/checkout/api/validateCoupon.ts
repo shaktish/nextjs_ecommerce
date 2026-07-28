@@ -1,10 +1,8 @@
-"use server";
-
-import { backendClient } from "@/lib/backend/client";
+import bffFetch from "@/lib/bffClient";
 
 async function validateCoupon(code: string) {
-  const { response } = await backendClient(
-    `/api/coupon/validate/${encodeURIComponent(code)}`,
+  const response = await bffFetch(
+    `/coupon/validate/${encodeURIComponent(code)}`,
     {
       method: "GET",
     },

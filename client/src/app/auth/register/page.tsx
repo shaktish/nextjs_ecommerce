@@ -10,11 +10,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import register from "@/modules/auth/api/register";
+import { useAuthStore } from "@/store/useAuthStore";
 
 function RegisterPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { register, isLoading } = useAuthStore();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -32,18 +32,13 @@ function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      await register(formData);
-      toast.success("Registration Successful");
-      router.push("/auth/login");
-    } catch (e) {
-      const errorMessage =
-        e instanceof Error ? e.message : "Unable to register";
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
+    const result = await register(formData);
+    if (!result?.success) {
+      toast.error(result.message);
+      return;
     }
+    toast.success("Registration successful");
+    router.push("/auth/login");
   };
   return (
     <div className="min-h-screen bg-[#fff6f4] flex">
@@ -103,9 +98,9 @@ function RegisterPage() {
           <Button
             type="submit"
             className="w-full bg-black text-white hover:bg-black transition-colors"
-            disabled={loading}
+            disabled={isLoading}
           >
-            {loading ? (
+            {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating
                 Account...

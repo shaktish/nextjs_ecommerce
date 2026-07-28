@@ -1,12 +1,12 @@
 "use server";
-import { backendClient } from "@/lib/backend/client";
+import { withServerActionAuth } from "@/lib/auth/withServerActionAuth";
 
 export async function verifyPayment(data: {
   razorpayOrderId: string;
   razorpayPaymentId: string;
   razorpay_signature: string;
 }) {
-  const { response } = await backendClient(`/api/payment/verify`, {
+  const response = await withServerActionAuth(`/api/payment/verify`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
