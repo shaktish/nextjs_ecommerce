@@ -1,13 +1,14 @@
 "use client";
-import { FeatureBannerAPI } from "@/store/useFeatureBannerStore";
+
 import useSlider from "../hooks/useSlider";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { FeatureBanner } from "@/types/featureBanner.types";
 
 interface BannerProps {
-  banners: FeatureBannerAPI[];
+  banners: FeatureBanner[];
 }
 const Banner = ({ banners }: BannerProps) => {
   const [isBannerHover, setIsBannerHover] = useState(false);
