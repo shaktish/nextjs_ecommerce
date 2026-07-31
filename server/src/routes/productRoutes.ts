@@ -14,7 +14,7 @@ import {
   updateProduct,
 } from "../controller/productController";
 import { AuthenticateJWT, isAdmin } from "../middleware/authMiddleware";
-import { upload } from "../middleware/middleware";
+import { upload } from "../middleware/multer";
 
 const router = express.Router();
 router.get("/lookup", getProductLookups);
