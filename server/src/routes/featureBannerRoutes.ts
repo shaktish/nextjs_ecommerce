@@ -7,13 +7,6 @@ import { AuthenticateJWT } from "../middleware/authMiddleware";
 import { upload } from "../middleware/middleware";
 
 const router = express.Router();
-
-// router.post(
-//   "/",
-//   AuthenticateJWT,
-//   upload.array("images", 4),
-//   createFeatureBanner,
-// );
 router.patch(
   "/",
   AuthenticateJWT,

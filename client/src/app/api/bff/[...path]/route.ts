@@ -50,9 +50,10 @@ async function proxy(
     const backendPath = `/api/${path.join("/")}${request.nextUrl.search}`;
 
     const body =
-      request.method === "GET" || request.method === "HEAD"
-        ? undefined
-        : await request.text();
+      request.method !== "GET" && request.method !== "HEAD"
+        ? request.body
+        : undefined;
+
     const { response, setCookies } = await backendClient(backendPath, {
       method: request.method,
       headers: request.headers,

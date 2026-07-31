@@ -1,7 +1,11 @@
-import { FeatureBannerAPI } from "@/store/useFeatureBannerStore";
-import { FeatureBanner } from "@/types/featureBanner.types";
+import {
+  FeatureBannerFormatted,
+  FeatureBanner,
+} from "@/types/featureBanner.types";
 
-export const formatBannerData = (item: FeatureBannerAPI): FeatureBanner => {
+export const formatBannerData = (
+  item: FeatureBanner,
+): FeatureBannerFormatted => {
   return {
     id: item.id,
     publicId: item.publicId,

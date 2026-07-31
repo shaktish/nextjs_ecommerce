@@ -13,7 +13,10 @@
 
 import { useAuthStore } from "@/store/useAuthStore";
 
-export default async function bffFetch(path: string, init: RequestInit = {}) {
+export default async function bffFetch(
+  path: string,
+  init: RequestInit & { skipAuth?: boolean } = {},
+) {
   const response = await fetch(`/api/bff${path}`, {
     credentials: "include",
     ...init,

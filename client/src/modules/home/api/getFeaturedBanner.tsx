@@ -7,10 +7,11 @@ export async function getFeaturedBanner() {
       revalidate: 3600,
       tags: [HOME_BANNER],
     },
+    skipAuth: true,
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch categories");
+    throw new Error("Failed to fetch feature banners");
   }
   return response.json();
 }

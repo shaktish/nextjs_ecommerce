@@ -5,6 +5,7 @@ export async function getFeaturedProducts() {
     next: {
       revalidate: 3600,
     },
+    skipAuth: true,
   });
 
   if (!response.ok) {

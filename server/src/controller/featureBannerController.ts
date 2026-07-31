@@ -14,10 +14,8 @@ interface BannerData {
 
 const updateFeatureBanner = asyncHandler(
   async (req: AuthenticateRequest, response: Response) => {
-    console.log("updateFeatureBanner handler");
     // Validate uploaded files
     const files = (req.files as Express.Multer.File[]) || [];
-
     const bannerData: {
       id: string;
       redirectUrl: string;

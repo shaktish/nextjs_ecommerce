@@ -1,7 +1,7 @@
 "use client";
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -10,17 +10,54 @@ import {
 } from "@dnd-kit/sortable";
 import SortableImage from "@/components/admin/SortableImage";
 import { Button } from "@/components/ui/button";
-import { useFeatureBannerStore } from "@/store/useFeatureBannerStore";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
-import { FeatureBanner } from "@/types/featureBanner.types";
+import { FeatureBannerFormatted } from "@/types/featureBanner.types";
 import { formatBannerData } from "@/modules/admin/settings/utils";
+import { getFeaturedBannerClient } from "@/modules/home/api/client/getFeaturedBannerClient";
+import addBanner from "@/modules/home/api/addBanner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { DragEndEvent } from "@dnd-kit/core";
 
 const Settings = () => {
-  const { getAllFeatureBanners, updateFeatureBanner, isLoading } =
-    useFeatureBannerStore();
+  const initialized = useRef(false);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: ["feature-banner-admin"],
+    queryFn: getFeaturedBannerClient,
+    select: (response) => {
+      return response.data.map((item) => formatBannerData(item));
+    },
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
+  const mutation = useMutation({
+    mutationFn: addBanner,
+    onSuccess: (response) => {
+      const updatedData = response.data.map(formatBannerData);
+
+      queryClient.setQueryData<FeatureBannerFormatted[]>(
+        ["feature-banner-admin"],
+        updatedData,
+      );
+
+      setImages(updatedData);
+      setDeletedBannerIds([]);
+
+      toast.success(response.message);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
   const [deletedBannerIds, setDeletedBannerIds] = useState<string[]>([]);
-  const [images, setImages] = useState<FeatureBanner[]>([]);
+  const [images, setImages] = useState<FeatureBannerFormatted[]>([]);
+
+  useEffect(() => {
+    if (!initialized.current && data) {
+      setImages(data);
+      initialized.current = true;
+    }
+  }, [data]);
 
   const normalizeFileName = (fileName: string): string => {
     return fileName.trim().replace(/\s+/g, "_").toLowerCase();
@@ -51,7 +88,7 @@ const Settings = () => {
     }
     setImages((prev) => prev.filter((img) => img.id !== item.id));
   };
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
 
@@ -63,17 +100,6 @@ const Settings = () => {
       });
     }
   };
-
-  useEffect(() => {
-    const loadBanners = async () => {
-      const data = await getAllFeatureBanners();
-      if (data && data.length > 0) {
-        const featureBannerData = data.map((item) => formatBannerData(item));
-        setImages(featureBannerData);
-      }
-    };
-    loadBanners();
-  }, []);
 
   const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,14 +174,7 @@ const Settings = () => {
     if (deletedBannerIds.length > 0) {
       formData.append("deletedImageIds", JSON.stringify(deletedBannerIds));
     }
-
-    let response = await updateFeatureBanner(formData);
-
-    if (response?.data && response?.data.length > 0) {
-      toast.success(response?.message);
-      const updatedData = response.data.map((item) => formatBannerData(item));
-      setImages(updatedData);
-    }
+    await mutation.mutateAsync(formData);
   };
 
   const inputChangeHandler = (
@@ -171,6 +190,14 @@ const Settings = () => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full min-h-[400px] items-center justify-center">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="p-6">
@@ -184,7 +211,7 @@ const Settings = () => {
           action="#"
           method="POST"
           onSubmit={submitHandler}
-          className={isLoading ? "pointer-events-none opacity-70" : ""}
+          className={mutation.isPending ? "pointer-events-none opacity-70" : ""}
         >
           <div className="flex flex-col items-center justify-center border border-dashed border-gray-500/40 rounded-lg py-6 cursor-pointer hover:bg-white/5 transition mb-4 mt-2">
             <Label>
@@ -240,9 +267,9 @@ const Settings = () => {
               </DndContext>
             )}
           </div>
-          <Button type="submit">
-            {isLoading && <Spinner />}
-            {isLoading ? "Loading..." : "Submit"}
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending && <Spinner />}
+            {mutation.isPending ? "Loading..." : "Submit"}
           </Button>
         </form>
       </div>

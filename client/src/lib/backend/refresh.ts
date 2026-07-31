@@ -34,6 +34,7 @@ export async function refreshAccessToken(): Promise<RefreshResult> {
     cookieHeader += cookie.split(";")[0] + "; ";
   }
 
+  console.log("renewed jwt tokens");
   return {
     cookieHeader: cookieHeader.trim(),
     setCookies,

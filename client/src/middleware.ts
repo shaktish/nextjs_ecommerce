@@ -54,7 +54,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
-  } catch {
+  } catch (e) {
+    console.log(e, "middleware");
     if (process.env.NODE_ENV === "development") {
       console.debug("Access token invalid or expired.");
     }
