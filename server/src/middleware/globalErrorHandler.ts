@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import winstonLogger from "../utils/winstonLogger";
 import AppError from "../utils/AppError";
+import { Prisma } from "@prisma/client";
+import handlePrismaError from "../errors/prismaError";
 
 // This catches all errors passed with "next(error)" in Express routes.
 const globalErrorHandler = (
@@ -13,7 +15,19 @@ const globalErrorHandler = (
   const statusCode = error?.statusCode ?? 500;
   const message = error?.message || "Internal Server Error";
 
-  // ✅ Log detailed error info via Winston
+  // handle prisma error
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    const prismaError = handlePrismaError(error);
+
+    if (prismaError) {
+      return res.status(prismaError.statusCode).json({
+        success: false,
+        message: prismaError.message,
+      });
+    }
+  }
+
+  // Log detailed error info via Winston
   if (error.isOperational) {
     // Expected / handled errors (e.g., validation, bad input)
     winstonLogger.warn("⚠️ Operational Error", {

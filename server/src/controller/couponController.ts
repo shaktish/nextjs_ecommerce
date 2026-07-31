@@ -16,6 +16,7 @@ const createCoupon = asyncHandler(
       return res.status(400).json({
         message: "Validation failed",
         details: error.details.map((d) => d.message),
+        success: false,
       });
     }
 
@@ -29,14 +30,19 @@ const createCoupon = asyncHandler(
         id: coupon.id,
         name: coupon.code,
       },
+      success: true,
     });
   },
 );
 
 const getAllCoupon = asyncHandler(
   async (req: AuthenticateRequest, res: Response) => {
-    const coupons = await prisma.coupon.findMany();
-    return res.status(200).json({ data: coupons });
+    const coupons = await prisma.coupon.findMany({
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+    return res.status(200).json(coupons);
   },
 );
 
@@ -50,6 +56,7 @@ const updateCoupon = asyncHandler(
       return res.status(400).json({
         message: "Validation failed",
         details: error.details.map((d) => d.message),
+        success: false,
       });
     }
     const id = req.params.id;
@@ -64,6 +71,7 @@ const updateCoupon = asyncHandler(
         id: coupon.id,
         name: coupon.code,
       },
+      success: true,
     });
   },
 );
@@ -75,7 +83,7 @@ const getCouponById = asyncHandler(
     if (!coupon) {
       return res.status(404).json({ message: "Coupon not found" });
     }
-    return res.status(200).json({ data: coupon });
+    return res.status(200).json(coupon);
   },
 );
 
@@ -83,7 +91,9 @@ const deleteCoupon = asyncHandler(
   async (req: AuthenticateRequest, res: Response) => {
     const id = req.params.id;
     await prisma.coupon.delete({ where: { id } });
-    return res.status(200).json({ message: "Coupon deleted successfully" });
+    return res
+      .status(200)
+      .json({ message: "Coupon deleted successfully", success: true });
   },
 );
 
