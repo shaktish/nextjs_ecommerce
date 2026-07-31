@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import getAllCoupon from "@/modules/coupon/api/getAllCoupon";
 import deleteCoupon from "@/modules/coupon/api/removeCoupon";
+import { Coupon } from "@/modules/coupon/types/coupon.types";
 import { getFormattedDate } from "@/utils/date";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
@@ -83,7 +84,7 @@ const CouponListAdmin = () => {
                   </TableHeader>
                   <TableBody>
                     {coupons &&
-                      coupons?.map((coupon) => (
+                      coupons?.map((coupon: Coupon) => (
                         <TableRow key={coupon.id}>
                           <TableCell>{coupon.code}</TableCell>
                           <TableCell>{coupon.discountPercentage}</TableCell>
