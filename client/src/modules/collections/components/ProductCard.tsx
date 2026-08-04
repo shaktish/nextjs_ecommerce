@@ -1,6 +1,6 @@
-import { Product } from "@/store/useProductStore";
 import Image from "next/image";
 import ProductPreview from "../../../../public/images/product-preview.jpeg";
+import { Product } from "@/types/product.types";
 
 interface ProductCard<T> {
   product: Product<T>;

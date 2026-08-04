@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Product } from "@/store/useProductStore";
-import { Variant } from "@/types/product.types";
+import { Product, Variant } from "@/types/product.types";
 import ProductCard from "@/modules/collections/components/ProductCard";
 
 interface FeaturedProductsProps {

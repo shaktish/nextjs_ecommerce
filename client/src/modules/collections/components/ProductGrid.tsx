@@ -1,8 +1,6 @@
 "use client";
-import { Product } from "@/store/useProductStore";
-import { ProductLookup, VariantForTable } from "@/types/product.types";
+import { Product, ProductLookup, VariantForTable } from "@/types/product.types";
 import { formatPrice } from "@/utils/number";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import ProductCard from "./ProductCard";
 

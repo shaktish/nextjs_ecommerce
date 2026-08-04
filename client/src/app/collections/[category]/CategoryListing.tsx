@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Product } from "@/store/useProductStore";
 import { useParams } from "next/navigation";
 
 import { Loader2, SlidersHorizontal } from "lucide-react";
@@ -31,6 +30,7 @@ import { ProductGrid } from "@/modules/collections/components/ProductGrid";
 import { formatCategoryName } from "@/modules/collections/utils/formatCategoryName";
 import { sortByOptions } from "@/modules/collections/constants/constants";
 import {
+  Product,
   ProductCategories,
   ProductLookup,
   VariantForTable,

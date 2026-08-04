@@ -1,6 +1,5 @@
 import { DEFAULT_PRODUCT_IMAGE } from "@/constant/image-path";
-import { Product } from "@/store/useProductStore";
-import { Variant } from "@/types/product.types";
+import { Product, Variant } from "@/types/product.types";
 import { Metadata } from "next";
 
 export function buildProductMetaData(product: Product<Variant>): Metadata {

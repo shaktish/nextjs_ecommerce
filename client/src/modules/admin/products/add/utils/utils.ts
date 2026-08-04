@@ -1,6 +1,5 @@
 import { ProductFormType } from "@/schemas/productSchema";
-import { Product } from "@/store/useProductStore";
-import { Category, Variant } from "@/types/product.types";
+import { Category, Product, Variant } from "@/types/product.types";
 
 function buildCategoryPath(categoryId: string, categories: any[]) {
   const path: string[] = [];
