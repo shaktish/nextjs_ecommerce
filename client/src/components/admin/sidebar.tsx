@@ -82,6 +82,7 @@ const AdminSidebar = ({ isOpen, toggle }: SidebarProps) => {
           size={"icon"}
           className="ml-auto"
           onClick={toggle}
+          aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
         >
           {isOpen ? (
             <ChevronLeft className="h-4 w-4" />
@@ -92,23 +93,35 @@ const AdminSidebar = ({ isOpen, toggle }: SidebarProps) => {
       </div>
       <div className="space-y-4 py-4">
         {menuItems.map((item) => {
+          if (item.name === "Logout") {
+            return (
+              <Button
+                key={item.name}
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer",
+                )}
+                onClick={handleLogout}
+              >
+                <item.icon className="h-4 w-4" />
+                <span className={cn("ml-3", !isOpen && "hidden")}>
+                  {item.name}
+                </span>
+              </Button>
+            );
+          }
           return (
-            <div
+            <Link
               key={item.name}
               className={cn(
                 "flex items-center px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer",
               )}
-              onClick={
-                item.name === "Logout"
-                  ? handleLogout
-                  : () => router.push(item.href)
-              }
+              href={item.href}
             >
               <item.icon className="h-4 w-4" />
               <span className={cn("ml-3", !isOpen && "hidden")}>
                 {item.name}
               </span>
-            </div>
+            </Link>
           );
         })}
       </div>
