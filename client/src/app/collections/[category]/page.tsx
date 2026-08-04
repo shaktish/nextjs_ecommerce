@@ -1,7 +1,7 @@
 import CategoryListing from "./CategoryListing";
 import getProductList from "@/modules/collections/api/getProductList";
 import { getProductCategories } from "@/modules/collections/api/getProductCategories";
-import { getProductLookup } from "@/modules/collections/api/getProductLookup";
+import getProductLookup from "@/modules/collections/api/getProductLookup";
 
 interface PageProps {
   params: Promise<{

@@ -14,14 +14,15 @@ import { Button } from "../ui/button";
 interface AlertModalProps {
   title: string;
   description: string;
-  trigger: React.ReactNode;
+  action: React.ReactNode;
+  trigger?: React.ReactNode;
 }
 
-function AlertModal({ title, description, trigger }: AlertModalProps) {
+function AlertModal({ title, description, action, trigger }: AlertModalProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive">Delete</Button>
+        {trigger ? trigger : <Button variant="destructive">Delete</Button>}
       </AlertDialogTrigger>
 
       <AlertDialogContent>
@@ -32,7 +33,7 @@ function AlertModal({ title, description, trigger }: AlertModalProps) {
 
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          {trigger}
+          <AlertDialogAction asChild>{action}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

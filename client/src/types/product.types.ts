@@ -49,23 +49,37 @@ export type ProductApiResponse = {
   createdAt: string;
   updatedAt: string;
   isFeatured: boolean;
-
-  images: {
-    id: string;
-    url: string;
-    publicId: string;
-  }[];
-
-  variants: {
-    id?: string;
-    sizeId: string;
-    price: number;
-    stock: number;
-  }[];
+  images: ProductImage[];
+  variants: Variant[];
 };
 
 export interface ProductSlug {
   slug: string;
   categorySlug: string;
   updatedAt: Date;
+}
+
+export interface ProductImage {
+  id: string;
+  url: string;
+  publicId: string;
+}
+
+export interface Product<TVariant> {
+  id: string;
+  name: string;
+  slug: string;
+  brandId: string;
+  description: string;
+  categoryId: string;
+  genderId: string;
+  price: number;
+  stock: number;
+  soldCount: number;
+  rating?: number | null;
+  images: ProductImage[];
+  createdAt: Date;
+  updatedAt: Date;
+  isFeatured: boolean;
+  variants: TVariant[];
 }

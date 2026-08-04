@@ -2,7 +2,6 @@
 import { FormProvider, useFieldArray } from "react-hook-form";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useProductStore } from "@/store/useProductStore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
@@ -12,45 +11,60 @@ import { ProductFormType, productSchema } from "@/schemas/productSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { buildSubmitFormData } from "../../../../modules/admin/products/add/utils/buildProductFormData";
 import { mapProductToForm } from "../../../../modules/admin/products/add/utils/utils";
-import { Variant } from "@/types/product.types";
+import {
+  Category,
+  Product,
+  ProductLookup,
+  Variant,
+} from "@/types/product.types";
 import ImageUpload from "../../../../modules/admin/products/add/components/ImageUpload";
 import Variants from "../../../../modules/admin/products/add/components/Variants";
 import ProductBasicInfo from "../../../../modules/admin/products/add/components/ProductBasicInfo";
+import addProduct from "@/modules/admin/products/api/addProduct";
+import updateProduct from "@/modules/admin/products/api/updateProduct";
 
-const AddProductForm = () => {
-  const searchParams = useSearchParams();
+interface ProductFormProps {
+  productLookup: ProductLookup;
+  categoriesLookup: Category[];
+  product?: Product<Variant>;
+  editProductId?: string | undefined;
+}
+
+const AddProductForm = ({
+  productLookup,
+  categoriesLookup,
+  product,
+  editProductId,
+}: ProductFormProps) => {
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const {
-    addProduct,
-    getProduct,
-    isLoading,
-    error,
-    updateProduct,
-    productLookup,
-    getLookup,
-    getCategoriesLookup,
-    categoriesLookup,
-  } = useProductStore();
+
+  const defaultValues = useMemo(
+    () =>
+      product
+        ? mapProductToForm(product, categoriesLookup)
+        : {
+            name: "",
+            description: "",
+            brandId: "",
+            genderId: "",
+            featured: false,
+            variants: [],
+            categories: [],
+            images: [],
+          },
+    [product, categoriesLookup],
+  );
 
   const methods = useForm<ProductFormType>({
     resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      brandId: "",
-      genderId: "",
-      featured: false,
-      variants: [],
-      categories: [],
-      images: [],
-    },
+    defaultValues,
   });
   const {
     control,
     handleSubmit,
     setValue,
     formState: { errors },
-    reset,
   } = methods;
   const {
     fields: variantFields,
@@ -76,8 +90,6 @@ const AddProductForm = () => {
     return map;
   }, [productLookup?.size]);
 
-  const editedProductId = searchParams.get("id");
-  const isEditMode = !!editedProductId;
   const selectedCategories = useWatch({ control, name: "categories" }) || [];
 
   const categoryLevels = useMemo(() => {
@@ -108,49 +120,24 @@ const AddProductForm = () => {
   } = useImageState(setValue);
 
   useEffect(() => {
-    if (!productLookup) {
-      getLookup();
-    }
-    if (!categoriesLookup.length) {
-      getCategoriesLookup();
-    }
-  }, []);
+    // edit view product
+    if (!product) return;
 
-  useEffect(() => {
-    // Edit Product
-    const fetchProduct = async () => {
-      if (!isEditMode || !editedProductId || !categoriesLookup.length) return;
-      const data = await getProduct(editedProductId);
-      if (data && data?.images) {
-        const imageUrls = data?.images.map((image) => image.url);
-        setExistingImagePreviews(imageUrls);
-        setExistingImages(data?.images);
-        reset(mapProductToForm(data, categoriesLookup));
-      }
-    };
+    const imageUrls = product.images.map((image) => image.url);
 
-    fetchProduct();
-  }, [isEditMode, editedProductId, categoriesLookup.length]);
+    setExistingImagePreviews(imageUrls);
+    setExistingImages(product.images);
+  }, [product, setExistingImages, setExistingImagePreviews]);
 
-  useEffect(() => {
-    if (error) {
-      const details = Array.isArray(error.details) ? error.details : [];
-      const message =
-        details.length > 0
-          ? details.map((item, idx) => <div key={idx}>{item}</div>)
-          : error.message || "Something went wrong";
-
-      toast.error(message);
-    }
-  }, [error]);
-
-  const submitButton = isEditMode ? "Update Product" : "Create Product";
-  const submitButtonLoading = isEditMode
+  const submitButton = product ? "Update Product" : "Create Product";
+  const submitButtonLoading = product
     ? "Updating Product..."
     : "Creating Product...";
 
   const onSubmit = async (data: ProductFormType) => {
-    let response;
+    if (isLoading) return;
+    setIsLoading(true);
+
     const categoryId = data.categories.at(-1);
     const removedVariantsWithId = Object.entries(removedVariants).reduce(
       (acc, [key, variant]) => {
@@ -173,19 +160,23 @@ const AddProductForm = () => {
       },
       variants: data.variants,
       selectedFiles: selectedImageFiles,
-      isEditMode,
+      isEditMode: !!product,
       existingImagesData: existingImages,
       existingPreviews: existingImagePreviews,
       removedVariants: removedVariantsWithId,
     });
-    if (isEditMode) {
-      response = await updateProduct(editedProductId, formData);
-    } else {
-      response = await addProduct(formData);
-    }
-
-    if (response) {
+    try {
+      if (product && editProductId) {
+        await updateProduct(editProductId, formData);
+      } else {
+        await addProduct(formData);
+      }
       router.push("/admin/products/list");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Something went wrong";
+      toast.error(msg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -202,13 +193,12 @@ const AddProductForm = () => {
       <div className="flex flex-col gap-6">
         <header className="flex items-center justify-center mb-2 text-center">
           <h1 className="text-1xl font-semibold">
-            {isEditMode ? "Edit" : "Add"} Product
+            {product ? "Edit" : "Add"} Product
           </h1>
         </header>
       </div>
       <FormProvider {...methods}>
         <form
-          action="#"
           method="POST"
           onSubmit={handleSubmit(onSubmit)}
           className={isLoading ? "pointer-events-none opacity-70" : ""}

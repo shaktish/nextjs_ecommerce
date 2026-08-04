@@ -57,13 +57,11 @@
  */
 
 // backendClient → transport + refresh + retry
-
-import { cookies } from "next/headers";
 import { refreshAccessToken } from "./refresh";
 import getRefreshPromise from "./refreshLocker";
 import { RefreshTokenExpiredError } from "@/errors/refreshTokenExpired";
 import execute from "./execute";
-import { isAccessTokenExpiring, refreshBeforeStreamingRequest } from "./helper";
+import { refreshBeforeStreamingRequest } from "./helper";
 
 type BackendClientResponse = {
   response: Response;
@@ -75,6 +73,7 @@ export async function backendClient(
 ): Promise<BackendClientResponse> {
   // const cookieStore = await cookies();
   const url = `${process.env.API_URL}${path}`;
+  console.log(url, "url backend client");
 
   // For streamed requests, refresh the access token before sending
   // the request if it is expired (or about to expire). Unlike JSON
@@ -84,7 +83,6 @@ export async function backendClient(
     await refreshBeforeStreamingRequest(options);
 
   let response = await execute(url, cookieHeader, options);
-
   // If we already refreshed before the request, preserve those
   // Set-Cookie headers so they can be forwarded back to the browser.
   // Otherwise, return any cookies from the backend response.
@@ -113,6 +111,11 @@ export async function backendClient(
 
   // Retry once
   response = await execute(url, refreshResult.cookieHeader, options);
+  if (response.status === 401) {
+    throw new RefreshTokenExpiredError(
+      "Failed to renew token, even wit valid refresh token",
+    );
+  }
   setCookies = refreshResult.setCookies;
 
   return { response, setCookies };

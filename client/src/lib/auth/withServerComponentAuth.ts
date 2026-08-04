@@ -41,8 +41,8 @@ export default async function withServerComponentAuth<T>(
 ): Promise<T> {
   try {
     return await fn();
-  } catch (e) {
-    console.log("executeServerRequest error");
+  } catch (e: unknown) {
+    console.error("Server component request failed", e);
     if (e instanceof RefreshTokenExpiredError) {
       redirect("/auth/login");
     }

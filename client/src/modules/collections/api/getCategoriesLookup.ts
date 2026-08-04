@@ -1,13 +1,12 @@
 "use server";
-
 import withServerComponentAuth from "@/lib/auth/withServerComponentAuth";
 import { backendClient } from "@/lib/backend/client";
 
-async function getProductLookup() {
+async function getCategoriesLookup() {
   return withServerComponentAuth(async () => {
-    const { response } = await backendClient("/api/product/lookup");
+    const { response } = await backendClient("/api/product/lookup-categories");
     return response.json();
   });
 }
 
-export default getProductLookup;
+export default getCategoriesLookup;

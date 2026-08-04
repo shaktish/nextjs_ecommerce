@@ -65,7 +65,7 @@ function AddressCard({ data }: AddressCard) {
 
           <AlertModal
             title="Delete Address"
-            trigger={
+            action={
               <Button variant="outline" onClick={handleDelete}>
                 Delete
               </Button>

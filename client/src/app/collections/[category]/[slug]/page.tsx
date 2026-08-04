@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 import { buildProductMetaData } from "./lib/seo";
-import { getProductLookup } from "@/modules/collections/api/getProductLookup";
 import Details from "@/modules/collections/components/ProductDetails";
 import getProductBySlug from "@/modules/collections/api/getProductBySlug";
+import getProductLookup from "@/modules/collections/api/getProductLookup";
 
 interface PageProps {
   params: Promise<{
