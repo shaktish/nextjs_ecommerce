@@ -98,7 +98,6 @@ const login = asyncHandler(
 
 const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken;
-  console.log(refreshToken, "refreshToken");
   // 1. check for refresh token
   if (!refreshToken) {
     return res.status(401).json({
