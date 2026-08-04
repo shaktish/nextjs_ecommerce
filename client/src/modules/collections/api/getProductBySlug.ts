@@ -5,6 +5,7 @@ async function getProductBySlug(slug: string) {
     next: {
       tags: [`product-${slug}`],
     },
+    skipAuth: true,
   });
   if (!response.ok) {
     throw new Error("Error fetching product details");

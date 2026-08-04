@@ -40,8 +40,9 @@ router.get("/admin/:id", getProductByIdForAdmin);
 router.get("/:slug", getProduct);
 router.patch(
   "/:id",
-  upload.array("images", 10),
   AuthenticateJWT,
+  isAdmin,
+  upload.array("images", 10),
   updateProduct,
 );
 router.delete("/:id", AuthenticateJWT, isAdmin, deleteProduct);

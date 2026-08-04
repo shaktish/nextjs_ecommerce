@@ -8,6 +8,7 @@ async function getProductList(queryParams: URLSearchParams) {
         revalidate: 3600,
         tags: ["products"],
       },
+      skipAuth: true,
     },
   );
 

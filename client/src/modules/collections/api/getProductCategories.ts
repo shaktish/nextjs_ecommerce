@@ -11,6 +11,7 @@ export async function getProductCategories(parentId?: string) {
       revalidate: 300, // 5mins
       tags: ["products"],
     },
+    skipAuth: true,
   });
 
   if (!response.ok) {
