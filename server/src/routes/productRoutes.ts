@@ -36,7 +36,7 @@ router.post(
   upload.array("images", 10),
   createProduct,
 );
-router.get("/admin/:id", getProductByIdForAdmin);
+router.get("/admin/:id", AuthenticateJWT, isAdmin, getProductByIdForAdmin);
 router.get("/:slug", getProduct);
 router.patch(
   "/:id",
