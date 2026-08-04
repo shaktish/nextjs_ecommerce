@@ -50,7 +50,6 @@ const menuItems = [
   {
     name: "Logout",
     icon: LogOutIcon,
-    href: "",
   },
 ];
 
