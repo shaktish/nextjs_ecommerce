@@ -128,9 +128,59 @@ const getOrders = asyncHandler(
   },
 );
 
+const getAllOrdersAdmin = asyncHandler(
+  async (req: AuthenticateRequest, res: Response) => {
+    const { error, value } = ordersSchema.validate(req.query, {
+      abortEarly: false,
+    });
+
+    if (error) {
+      return res.status(400).json({
+        message: "Validation failed",
+        details: error.details.map((d) => d.message),
+      });
+    }
+
+    const { page, limit } = value;
+    const skip = (page - 1) * limit;
+    const [orders, count] = await Promise.all([
+      prisma.order.findMany({
+        take: limit,
+        skip,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          createdAt: true,
+          total: true,
+          shippingName: true,
+          status: true,
+          user: { select: { name: true, email: true } },
+          items: { select: { productName: true, quantity: true } },
+        },
+      }),
+      prisma.order.count(),
+    ]);
+
+    return res.status(200).json({
+      orders: orders.map((order) => ({
+        ...order,
+        customerName: order.user.name || order.shippingName,
+        customerEmail: order.user.email,
+        itemCount: order.items.reduce(
+          (total, item) => total + item.quantity,
+          0,
+        ),
+      })),
+      total: Math.ceil(count / limit),
+      page,
+      limit,
+    });
+  },
+);
+
 const updateOrderStatus = asyncHandler(
   async (req: AuthenticateRequest, res: Response) => {
-    const orderId = req.params.id;
+    const orderId = req.params.orderId;
     const { status } = req.body;
 
     const validTransitions: Record<OrderStatus, OrderStatus[]> = {
@@ -170,4 +220,4 @@ const updateOrderStatus = asyncHandler(
   },
 );
 
-export { getOrdersById, getOrders, updateOrderStatus };
+export { getOrdersById, getOrders, getAllOrdersAdmin, updateOrderStatus };

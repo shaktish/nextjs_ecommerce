@@ -50,6 +50,7 @@ const menuItems = [
   {
     name: "Logout",
     icon: LogOutIcon,
+    href: "",
   },
 ];
 
@@ -94,7 +95,7 @@ const AdminSidebar = ({ isOpen, toggle }: SidebarProps) => {
         {menuItems.map((item) => {
           if (item.name === "Logout") {
             return (
-              <Button
+              <div
                 key={item.name}
                 className={cn(
                   "flex items-center px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer",
@@ -105,7 +106,7 @@ const AdminSidebar = ({ isOpen, toggle }: SidebarProps) => {
                 <span className={cn("ml-3", !isOpen && "hidden")}>
                   {item.name}
                 </span>
-              </Button>
+              </div>
             );
           }
           return (

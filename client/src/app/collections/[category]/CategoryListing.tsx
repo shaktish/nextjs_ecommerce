@@ -80,11 +80,6 @@ function CategoryListing({
     updateRoute(params);
   };
 
-  const nextPageHandler = () => {
-    const params = updatePageParam(searchParams, currentPageParam + 1);
-    updateRoute(params);
-  };
-
   const updatePriceFilter = ([min, max]: number[]) => {
     const params = new URLSearchParams(searchParams.toString());
     const currentMin = Number(params.get("minPrice")) || 0;
@@ -92,6 +87,11 @@ function CategoryListing({
     if (min === currentMin && max === currentMax) return;
     params.set("minPrice", String(min));
     params.set("maxPrice", String(max));
+    updateRoute(params);
+  };
+
+  const nextPageHandler = () => {
+    const params = updatePageParam(searchParams, currentPageParam + 1);
     updateRoute(params);
   };
 

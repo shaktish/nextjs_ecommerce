@@ -21,7 +21,7 @@ export function Pagination({
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
-    <div className="mt-10 flex items-center justify-center gap-2">
+    <div className="mt-10 mb-10 flex items-center justify-center gap-2">
       <Button
         aria-label="previous page"
         variant={"outline"}
